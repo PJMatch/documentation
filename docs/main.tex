@@ -1,0 +1,72 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[margin=1.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath, amssymb, mathtools}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{subcaption}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{bibliography.bib}
+
+\lstset{
+    commentstyle=\color{green},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{purple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    numbers=left
+}
+
+
+\begin{document}
+\begin{figure}
+    \centering
+    \includegraphics[width = 10cm]{pg_logo_czarne.png}
+\end{figure}
+
+\title{PJMatch: Dokumentacja techniczna}
+\author{Autorzy: }
+\date{\today}
+\maketitle
+
+
+\clearpage
+\tableofcontents
+\clearpage
+
+
+\section{Opis problemu}
+Przykład cytowania \cite{kowalski2023}
+
+\section{Stack technologiczny}
+
+\section{Opis rozwiązań}
+
+\subsection{Dataset}
+\subsection{Text-to-PJM}
+\subsection{PJM-to-text}
+
+\section{Opis problemów w trakcie realizacji projektu}
+
+
+\subsection{Dataset}
+\subsection{Text-to-PJM}
+\subsection{PJM-to-text}
+
+\section{Perspektywa dalszego rozwoju projektu}
+\clearpage
+
+\printbibliography
+
+\end{document}
