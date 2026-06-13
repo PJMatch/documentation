@@ -1,4 +1,5 @@
-# TO JEST REPOZYTORIUM DO ORGANIZACJI PRACY
+# REPOZYTORIUM ZAWIERAJĄCE DOKUMENTACJĘ
+---------------------------------------
 
 ## *non_commitable.csv*
 
