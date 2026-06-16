@@ -14,7 +14,6 @@
 \usepackage{listings}
 \usepackage{xcolor}
 
-
 \usepackage[backend=biber,style=numeric]{biblatex}
 \addbibresource{bibliography.bib}
 
@@ -28,7 +27,6 @@
     numbers=left
 }
 
-
 \begin{document}
 \begin{figure}
     \centering
@@ -40,31 +38,63 @@
 \date{\today}
 \maketitle
 
-
 \clearpage
 \tableofcontents
 \clearpage
 
-
 \section{Opis problemu}
-Przykład cytowania \cite{kowalski2023}
+\begin{itemize}
+    \item Standardowa aplikacja aparatu zapisuje wszystko w galerii telefonu, a ze względu na ochronę danych nie mogliśmy zapisywać nagrań na prywatnych urządzeniach.
+    \item Potrzeba tworzenia plików \texttt{.json} z metadanymi.
+    \item Trzęsienie się telefonu na statywie po każdym dotknięciu ekranu.
+    \item Słaby internet w miejscach nagrywania, powodujący, że nagrania bardzo długo się wysyłały, co blokowało pracę.
+    \item Konieczność przyspieszenia i uproszczenia całego procesu nagrywania.
+\end{itemize}
 
 \section{Stack technologiczny}
+\begin{itemize}
+    \item \textbf{Dataset:} Python, Pandas, imageio-ffmpeg, React Native (Expo).
+\end{itemize}
 
+\subsection{Licencje wykorzystanych narzędzi}
+\begin{itemize}
+    \item \textbf{Python:} Python Software Foundation License (PSFL) - otwarta, bezpłatna licencja open-source, pozwalająca na dowolne modyfikowanie i dystrybucję kodu.
+    \item \textbf{Pandas:} Licencja BSD (3-Clause License) - licencja open-source, zezwalająca na dowolne prywatne i komercyjne modyfikowanie kodu źródłowego pod warunkiem zachowania informacji o prawach autorskich. Możemy użyć, ponieważ: na publicznym GitHubie udostępniamy jedynie nasz autorski skrypt, a nie pliki źródłowe samej biblioteki. Każdy, kto pobierze projekt, musi zainstalować Pandas samodzielnie, a instalator automatycznie dołącza wymagany plik licencyjny.
+    \item \textbf{imageio-ffmpeg:} Licencja MIT. - w pełni otwarta i darmowa licencja open-source, dająca użytkownikom nieograniczone prawo do używania, kopiowania i modyfikowania oprogramowania.
+    \item \textbf{React Native (Expo):} Licencja MIT
+\end{itemize}
 \section{Opis rozwiązań}
 
 \subsection{Dataset}
+\begin{itemize}
+    \item \textbf{Własna nagrywarka:} Stworzenie od zera dedykowanej aplikacji mobilnej. Rozwiązało to problem zapisu w galerii oraz pozwoliło na automatyczne tworzenie plików \texttt{.json} do każdego nagrania.
+    \item \textbf{Piloty Bluetooth:} Aplikacja została zintegrowana z bezprzewodowymi pilotami. Rozwiązało to problem trzęsienia się telefonu na statywie.
+    \item \textbf{Kolejka nagrań w tle:} Wdrożenie systemu kolejkowania wysyłania plików. Dzięki temu wolny internet stał się mniejszym problemem ponieważ można nagrywać kolejne zdania, podczas gdy poprzednie wysyłają się w tle.
+    \item \textbf{Automatyzacja procesu:} Dodanie funkcji automatycznego przełączania na kolejne zdanie po zakończeniu nagrania. Po ustawieniu w telefonie odpowiedniej osoby i pierwszego nagrywanego zdania użytkownik używa tylko pilota do nagrywania, bez konieczności wpisywania czegokolwiek w aplikacji.
+    \item \textbf{Walidator:} Stworzenie skryptów serwerowych, które dbają o porządek w bazie (czyszczenie dubli, usuwanie ścieżek audio, weryfikacja plików \texttt{.json} z Excelem).
+\end{itemize}
+
 \subsection{Text-to-PJM}
+
 \subsection{PJM-to-text}
 
 \section{Opis problemów w trakcie realizacji projektu}
 
-
 \subsection{Dataset}
+\begin{itemize}
+    \item Zapis do pamięci telefonu/galerii łamiący zasady prywatności.
+    \item Drgania obrazu niszczące jakość datasetu,
+    \item Przestoje w nagrywaniu wywołane słabym połączeniem sieciowym i oczekiwaniem na wysłanie pliku.
+    \item Zbyt długi przerwy między nagraniami wywołane wprowadzaniem danych takich jak numer aktualnego nagrania w aplikacji.
+\end{itemize}
+
 \subsection{Text-to-PJM}
+
 \subsection{PJM-to-text}
 
 \section{Perspektywa dalszego rozwoju projektu}
+\begin{itemize}
+\end{itemize}
 \clearpage
 
 \printbibliography
