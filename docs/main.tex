@@ -15,7 +15,7 @@
 \usepackage{xcolor}
 
 
-\usepackage[backend=biber,style=numeric]{biblatex}
+\usepackage[backend=bibtex,style=numeric]{biblatex}
 \addbibresource{bibliography.bib}
 
 \lstset{
@@ -51,18 +51,41 @@ Przykład cytowania \cite{kowalski2023}
 
 \section{Stack technologiczny}
 
+\begin{\begin{itemize}
+    \item Python
+    \item PyTorch
+\end{itemize}}
+
 \section{Opis rozwiązań}
 
 \subsection{Dataset}
 \subsection{Text-to-PJM}
 \subsection{PJM-to-text}
 
-\section{Opis problemów w trakcie realizacji projektu}
+2 wersje rozwiązania:
+\begin{\begin{itemize}
+    \item CSLR
+    \item ISLR
+\end{itemize}}
 
+
+\section{Opis problemów w trakcie realizacji projektu}
 
 \subsection{Dataset}
 \subsection{Text-to-PJM}
 \subsection{PJM-to-text}
+
+\begin{\begin{itemize}
+    \item Nie poprawny design datasetu do CSLR
+    \item Overfitting modelu CSLR na zdaniach za mało próbek glossów w różnych kontekstach żeby nauczyć model je rozróźniać 
+    \item Nie jednoznaczny opis implementacji modelu cosign w artykule \cite{cosign} co uniemożliwiło weryfikacje implementacji
+    \item Annotacje datasetów bywały sprzeczne, co zaniżało wyniki modelu
+    \item Dataset składa sie z zdań przez co nie jest adekwatny do nauki modelu ISLR, który wymaga pojedynczych słów
+    \item Pretraining na datasetach LSFB, Pheonix-14T, nie przyniósł spodziewanych rezultatów, model nie miał lepszych wyników niż trening od 0 możliwe
+        że wynika to z wątpliwej jakości nagrań i anotacji których nie mamy jak zweryfikować
+    \item Nikt z zespołu nie zna języka migowego, co utrudniało weryfikację wyników modelu i poprawki w annotacji datasetu.
+
+\end{itemize}}
 
 \section{Perspektywa dalszego rozwoju projektu}
 \clearpage
