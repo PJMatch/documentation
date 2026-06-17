@@ -48,7 +48,6 @@
 \clearpage
 
 \section{Opis problemu}
-Przykład cytowania \cite{kowalski2023}
 
 \section{Stack technologiczny}
 
@@ -59,19 +58,77 @@ Przykład cytowania \cite{kowalski2023}
 
 \section{Opis rozwiązań}
 
-\subsection{Dataset}
+\subsection{Dataset} \label{sec:dataset}
+
 \subsection{Text-to-PJM}
 
 \subsection{PJM-to-text}
 
-2 wersje rozwiązania:
 \subsubsection{CSLR (Continous Sign Language Recognition)}
-Projekt przewidywał utworzenie modułu tłumaczenia ciągłego języka migowego. Oznacza to tłumaczenie bez podziału na pojedyncze zdania, z całych sekwencji glossów.  
+Projekt przewidywał utworzenie modułu tłumaczenia ciągłego języka migowego. Oznacza to tłumaczenie bez podziału na pojedyncze słowa, z całych sekwencji glosów interpretowanych przez sieć neuronową. Jako architekturę sieci wybrano proponowany przez \cite{cosign} model CoSign-1s. Przeprowadzono trening na zgromadzonym zbiorze uczącym (opisanym w sekcji \ref{sec:dataset}). Odtworzony model porównano z opisanym w \cite{cosign}.
 
+% TUTAJ PORÓWNANIE WYNIKÓW NASZEGO I OG COSIGN NA PHOENIXIE
+% tabela poniezej tylko poglądowa, wazne zeby uzywac tabel z pakietu booktabs
+\begin{table}[htbp]
+    \centering
+    \caption{Przykładowa tabela - ZMIENIC NA NASZE WYNIKI}
+    \label{tab:train_res_cosign}
+    \begin{tabular}{llccc}
+        \toprule
+        Kolumna & Kolumna & Kolumna & Kolumna & kolumna \\
+        \midrule
+        CoSign-1s    & CSLR        & 91,3\%     & 18,2\% & 24,5 h \\
+        ---- & CSLR       & 88,7\%     & 21,4\% & 18,0 h \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+Ze względu na fakt, że architektura ta nie przewiduje tłumaczenia "w locie" (\textit{ang. online translation}), stworzono system wykorzystujący technikę ruchomego okna (\textit{ang. sliding window}).
+
+Strumień wideo rejestrowany przez kamerę jest analizowany klatka po klatce z wykorzystaniem biblioteki MediaPipe \cite{mediapipe}, która ekstrahuje współrzędne punktów kluczowych twarzy, dłoni oraz postawy ciała. Zgromadzone dane przestrzenne trafiają do bufora o stałej długości 220 klatek, który przesuwa się w czasie o zdefiniowany krok (tzw. \textit{stride}) równy 15 klatek. Dzięki temu model neuronowy może na bieżąco ewaluować ostatni fragment ruchu użytkownika, umożliwiając działanie aplikacji w czasie rzeczywistym.
+
+W trybie CSLR wyekstrahowane okno danych jest przekazywane do modelu CoSign-1s, który przy użyciu algorytmu dekodowania CTC (\textit{ang. Connectionist Temporal Classification} \cite{CTC-decoder}) generuje surową sekwencję glosów. Aby zniwelować błędy wynikające z fragmentacji predykcji dla nakładających się okien, zaprojektowano dwa autorskie moduły filtrujące:
 \begin{itemize}
-    \item CSLR
-    \item ISLR
+    \item \textbf{GlossTracker} – moduł pełniący funkcję systemu konsensusu (\textit{ang. hard voting}). Śledzi on predykcje z historii ostatnich przesunięć okna. Glos zostaje zatwierdzony tylko wtedy, gdy pojawi się minimalną, wymaganą liczbę razy, co skutecznie filtruje jednoklatkowe artefakty i halucynacje sieci.
+    \item \textbf{SentenceSmoother} – algorytm wygładzania zdań, który analizuje podobieństwo (bazujące na części wspólnej i sumie zbiorów słów) nakładających się na siebie predykcji. Łączy on powtarzające się sekwencje w płynne, stabilne zdania, ignorując pojedyncze słowa, które nie utrzymały się w wynikach wystarczająco długo.
 \end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/cslr_schematic.pdf}
+    \caption{Schemat potoku przetwarzania CSLR wykorzystujący architekturę CoSign-1s oraz moduły post-processingu.}
+    \label{fig:cslr_pipeline}
+\end{figure}
+
+
+\subsubsection{ISLR}
+Oprócz tłumaczenia ciągłego, zaimplementowano dedykowany potok przetwarzania (\textit{ang. pipeline}) dla wyizolowanych znaków języka migowego. Algorytm również opiera się na ruchomym oknie, z szerokością okna równą 30 klatek. Model został wyuczony na pojedynczych glosach ze zbioru uczącego (\ref{sec:dataset}). 
+
+% TUTAJ WYNIKI NASZEGO UCZEINA ISLR
+% tabela poniezej tylko poglądowa, wazne zeby uzywac tabel z pakietu booktabs
+\begin{table}[htbp]
+    \centering
+    \caption{Przykładowa tabela - ZMIENIC NA NASZE WYNIKI}
+    \label{tab:train_islr_res}
+    \begin{tabular}{llccc}
+        \toprule
+        Kolumna & Kolumna & Kolumna & Kolumna & kolumna \\
+        \midrule
+        CoSign-1s    & CSLR        & 91,3\%     & 18,2\% & 24,5 h \\
+        ---- & CSLR       & 88,7\%     & 21,4\% & 18,0 h \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent Tabela \ref{tab:train_islr_res} przedstawia wyniki sieci neruonowej działającej w trybie ISLR.
+
+Ponieważ klasyczne modele ISLR są silnie wrażliwe na szum przejściowy (chaotyczny ruch rąk pomiędzy znakami), zastosowano alternatywne podejście do analizy prawdopodobieństw z warstwy Softmax.
+
+Zamiast wybierać wyłącznie najbardziej prawdopodobną klasę dla danego okna, system ekstrahuje trzy najlepsze predykcje i wykorzystuje technikę czasowego uczenia zespołowego (\textit{ang. Temporal Ensembling} \cite{temporal-ensembling} / \textit{Soft Voting} \cite{soft-voting}). GlossTracker w trybie ISLR sumuje ułamkowe pewności (prawdopodobieństwa) dla każdego znaku na przestrzeni 15 ostatnich okien czasowych (). Jeśli dany znak przekroczy zdefiniowany próg skumulowanego wyniku, zostaje uznany za poprawny.
+
+Podejście to rozwiązuje problem tzw. szybkich znaków (np. zaimków takich jak "JA" czy "TY"), które trwają zbyt krótko, aby w pojedynczej klatce osiągnąć próg pewności wymagany w podejściu \textit{hard voting}. Ostateczna predykcja trafia do bufora potwierdzającego, który eliminuje problem migotania interfejsu , wymagając stabilności decyzji sieci przez określoną liczbę iteracji przed zaprezentowaniem wyniku użytkownikowi, a także automatycznie czyszcząc interfejs po zakończeniu ruchu (detekcja klasy \textit{blank}).
+
 
 \section{Opis problemów w trakcie realizacji projektu}
 
