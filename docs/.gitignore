@@ -6,6 +6,7 @@
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+*.bcf
 
 # bib-related
 *-blx.bib
