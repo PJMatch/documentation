@@ -1,15 +1,17 @@
-# LaTeX build files
+# helper files
 *.aux
-*.bbl
-*.bcf
-*.blg
-*.fdb_latexmk
-*.fls
 *.log
-*.out
-*.run.xml
-*.synctex.gz
 *.toc
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
 
-# resulting pdf
+# bib-related
+*-blx.bib
+*.bbl
+*.blg
+*.run.xml
+
+# resultign file
 *.pdf
