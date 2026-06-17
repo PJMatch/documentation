@@ -1,19 +1,23 @@
+% DON'T DELETE THIS LINE:
+% !TEX program = lualatex
+% ------------------------
+
 \documentclass[12pt]{article}
-\usepackage[utf8]{inputenc}
+
+\usepackage{fontspec}
+
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage[margin=1.5cm]{geometry}
-\usepackage[T1]{fontenc}
 \usepackage[polish]{babel}
+\usepackage{csquotes}
+
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amsmath, amssymb, mathtools}
 \usepackage{hyperref}
 \usepackage{booktabs}
 \usepackage{subcaption}
-
 \usepackage{listings}
-\usepackage{xcolor}
-
 
 \usepackage[backend=bibtex,style=numeric]{biblatex}
 \addbibresource{bibliography.bib}
@@ -28,7 +32,6 @@
     numbers=left
 }
 
-
 \begin{document}
 \begin{figure}
     \centering
@@ -40,21 +43,19 @@
 \date{\today}
 \maketitle
 
-
 \clearpage
 \tableofcontents
 \clearpage
-
 
 \section{Opis problemu}
 Przykład cytowania \cite{kowalski2023}
 
 \section{Stack technologiczny}
 
-\begin{\begin{itemize}
+\begin{itemize}
     \item Python
     \item PyTorch
-\end{itemize}}
+\end{itemize}
 
 \section{Opis rozwiązań}
 
@@ -63,11 +64,10 @@ Przykład cytowania \cite{kowalski2023}
 \subsection{PJM-to-text}
 
 2 wersje rozwiązania:
-\begin{\begin{itemize}
+\begin{itemize}
     \item CSLR
     \item ISLR
-\end{itemize}}
-
+\end{itemize}
 
 \section{Opis problemów w trakcie realizacji projektu}
 
@@ -75,17 +75,15 @@ Przykład cytowania \cite{kowalski2023}
 \subsection{Text-to-PJM}
 \subsection{PJM-to-text}
 
-\begin{\begin{itemize}
-    \item Nie poprawny design datasetu do CSLR
-    \item Overfitting modelu CSLR na zdaniach za mało próbek glossów w różnych kontekstach żeby nauczyć model je rozróźniać 
-    \item Nie jednoznaczny opis implementacji modelu cosign w artykule \cite{cosign} co uniemożliwiło weryfikacje implementacji
+\begin{itemize}
+    \item Niepoprawny design datasetu do CSLR
+    \item Overfitting modelu CSLR na zdaniach, za mało próbek glossów w różnych kontekstach, żeby nauczyć model je rozróźniać
+    \item Niejednoznaczny opis implementacji modelu cosign w artykule \cite{cosign}, co uniemożliwiło weryfikację implementacji
     \item Annotacje datasetów bywały sprzeczne, co zaniżało wyniki modelu
-    \item Dataset składa sie z zdań przez co nie jest adekwatny do nauki modelu ISLR, który wymaga pojedynczych słów
-    \item Pretraining na datasetach LSFB, Pheonix-14T, nie przyniósł spodziewanych rezultatów, model nie miał lepszych wyników niż trening od 0 możliwe
-        że wynika to z wątpliwej jakości nagrań i anotacji których nie mamy jak zweryfikować
-    \item Nikt z zespołu nie zna języka migowego, co utrudniało weryfikację wyników modelu i poprawki w annotacji datasetu.
-
-\end{itemize}}
+    \item Dataset składa się ze zdań, przez co nie jest adekwatny do nauki modelu ISLR, który wymaga pojedynczych słów
+    \item Pretraining na datasetach LSFB, Pheonix-14T, nie przyniósł spodziewanych rezultatów; model nie miał lepszych wyników niż trening od zera. Możliwe, że wynika to z wątpliwej jakości nagrań i anotacji, których nie mamy jak zweryfikować
+    \item Nikt z zespołu nie zna języka migowego, co utrudniało weryfikację wyników modelu i poprawki w annotacji datasetu
+\end{itemize}
 
 \section{Perspektywa dalszego rozwoju projektu}
 \clearpage
