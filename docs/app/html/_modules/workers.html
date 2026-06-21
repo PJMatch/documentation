@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>workers &mdash; PJMatch-App 20.06.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=705bd0e0"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PJMatch-App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">app</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PJMatch-App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">workers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for workers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Worker threads module for managing parallel execution.</span>
+
+<span class="sd">Separates heavy computer vision tasks (MediaPipe) and neural network inference</span>
+<span class="sd">from the main GUI thread to prevent application freezing.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">consts</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mp_node</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPNode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pjm_nn_node</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlossTracker</span><span class="p">,</span> <span class="n">PJMPredictor</span><span class="p">,</span> <span class="n">SentenceSmoother</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">QThread</span><span class="p">,</span> <span class="n">Signal</span>
+
+
+<div class="viewcode-block" id="VisionWorker">
+<a class="viewcode-back" href="../workers.html#workers.VisionWorker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VisionWorker</span><span class="p">(</span><span class="n">QThread</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Background worker thread for computer vision operations.</span>
+<span class="sd">    </span>
+<span class="sd">    Manages camera frames, applies MediaPipe extraction, and feeds a sliding </span>
+<span class="sd">    window buffer. Emits ready frames to the UI for display.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">frame_ready</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shared_queue</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CSLR&quot;</span><span class="p">,</span> <span class="n">testing_vid_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the vision worker thread.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shared_queue (queue.Queue): Thread-safe queue to pass sliding windows to the AI worker.</span>
+<span class="sd">            mode (str): Application mode (&#39;CSLR&#39; or &#39;ISLR&#39;). Defaults to &quot;CSLR&quot;.</span>
+<span class="sd">            testing_vid_path (str, optional): Path to a local video file. If None, webcam is used. Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_queue</span> <span class="o">=</span> <span class="n">shared_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;ISLR&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_window_width</span> <span class="o">=</span> <span class="n">consts</span><span class="o">.</span><span class="n">SLIDING_WINDOW_LENGTH_ISLR</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">consts</span><span class="o">.</span><span class="n">STRIDE_ISLR</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_window_width</span> <span class="o">=</span> <span class="n">consts</span><span class="o">.</span><span class="n">SLIDING_WINDOW_LENGTH_CSLR</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">consts</span><span class="o">.</span><span class="n">STRIDE_CSLR</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mp_node</span> <span class="o">=</span> <span class="n">MPNode</span><span class="p">(</span><span class="n">max_window_len</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_window_width</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">video_path</span> <span class="o">=</span> <span class="n">testing_vid_path</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">camera</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">video_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">camera</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fps</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_delay_ms</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1000</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frames_since_last_predict</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">absolute_frame</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">playback_start_time</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="VisionWorker.run">
+<a class="viewcode-back" href="../workers.html#workers.VisionWorker.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Main execution loop for the VisionWorker.</span>
+<span class="sd">        </span>
+<span class="sd">        Reads frames from the video source, sends them to be displayed via signals, </span>
+<span class="sd">        enforces playback speed (if a video file is used), and triggers the </span>
+<span class="sd">        MediaPipe inference node at intervals defined by the stride.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">playback_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="n">ret</span><span class="p">,</span> <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">absolute_frame</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">frame_ready</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mp_node</span><span class="o">.</span><span class="n">receive_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_path</span><span class="p">:</span>
+                <span class="n">target_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">playback_start_time</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+                <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="n">sleep_time_seconds</span> <span class="o">=</span> <span class="n">target_time</span> <span class="o">-</span> <span class="n">current_time</span>
+
+                <span class="k">if</span> <span class="n">sleep_time_seconds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">msleep</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sleep_time_seconds</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_node</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_window_width</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">frames_since_last_predict</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames_since_last_predict</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">frames_since_last_predict</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">window_chunk</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp_node</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">)</span>
+            <span class="n">window_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">absolute_frame</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">window_chunk</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_queue</span><span class="o">.</span><span class="n">full</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">shared_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">window_chunk</span><span class="p">,</span> <span class="n">window_start</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="VisionWorker.stop">
+<a class="viewcode-back" href="../workers.html#workers.VisionWorker.stop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Signals the thread to stop running and cleanly releases camera resources.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AIWorker">
+<a class="viewcode-back" href="../workers.html#workers.AIWorker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AIWorker</span><span class="p">(</span><span class="n">QThread</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Background worker thread for neural network inference.</span>
+<span class="sd">    </span>
+<span class="sd">    Pops sliding windows from the queue, runs the PJM predictor, applies </span>
+<span class="sd">    tracking and smoothing, and emits the final text to the UI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">prediction_ready</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shared_queue</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CSLR&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the AI worker thread.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shared_queue (queue.Queue): Queue containing processed skeleton sliding windows.</span>
+<span class="sd">            mode (str): Application mode (&#39;CSLR&#39; or &#39;ISLR&#39;). Defaults to &quot;CSLR&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_queue</span> <span class="o">=</span> <span class="n">shared_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span> <span class="o">=</span> <span class="n">PJMPredictor</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span> <span class="o">=</span> <span class="n">GlossTracker</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smoother</span> <span class="o">=</span> <span class="n">SentenceSmoother</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_islr_word</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidate_word</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidate_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_confirmations</span> <span class="o">=</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="AIWorker.run">
+<a class="viewcode-back" href="../workers.html#workers.AIWorker.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Main execution loop for the AIWorker.</span>
+<span class="sd">        </span>
+<span class="sd">        Constantly polls the queue for new sliding windows, predicts glosses </span>
+<span class="sd">        using the neural network, filters results using tracking mechanisms, </span>
+<span class="sd">        and pushes final text strings to the GUI and log file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">window_chunk</span><span class="p">,</span> <span class="n">window_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">gloss_predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">window_chunk</span><span class="p">)</span>
+
+            <span class="n">voted_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">vote</span><span class="p">(</span><span class="n">gloss_predictions</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;CSLR&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">voted_string</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG Tracker: </span><span class="si">{</span><span class="n">voted_string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smoother</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">voted_string</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">final_sentence</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- EMITTING TO UI: </span><span class="si">{</span><span class="n">final_sentence</span><span class="si">}</span><span class="s2"> ---</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_ready</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;prediction_log.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">final_sentence</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">voted_string</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG Tracker: </span><span class="si">{</span><span class="n">voted_string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">voted_string</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_islr_word</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">voted_string</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_word</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">candidate_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">candidate_word</span> <span class="o">=</span> <span class="n">voted_string</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">candidate_count</span> <span class="o">=</span> <span class="mi">1</span>
+
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_confirmations</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">last_islr_word</span> <span class="o">=</span> <span class="n">voted_string</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">candidate_word</span> <span class="o">=</span> <span class="kc">None</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">candidate_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+                            <span class="k">if</span> <span class="n">voted_string</span> <span class="o">==</span> <span class="s2">&quot;blank&quot;</span><span class="p">:</span>
+                                <span class="n">voted_string</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- EMITTING TO UI: </span><span class="si">{</span><span class="n">voted_string</span><span class="si">}</span><span class="s2"> ---</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">prediction_ready</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">voted_string</span><span class="p">)</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;prediction_log.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">voted_string</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">last_islr_word</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">candidate_word</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">candidate_count</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+                <span class="c1"># if voted_string:</span>
+                <span class="c1">#     print(f&quot;DEBUG Tracker: {voted_string}&quot;)</span>
+
+                <span class="c1">#     self.prediction_ready.emit(voted_string)</span>
+                <span class="c1">#     with open(&quot;prediction_log.txt&quot;, &quot;a&quot;, encoding=&quot;utf-8&quot;) as f:</span>
+                <span class="c1">#         f.write(voted_string + &quot;\n&quot;)</span>
+
+<div class="viewcode-block" id="AIWorker.stop">
+<a class="viewcode-back" href="../workers.html#workers.AIWorker.stop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Signals the thread to stop, commits any lingering sentences (in CSLR mode), </span>
+<span class="sd">        and exits cleanly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;CSLR&quot;</span><span class="p">:</span>
+            <span class="n">leftover</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smoother</span><span class="o">.</span><span class="n">_commit</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">leftover</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prediction_ready</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">leftover</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Hubert Rotkiewicz, Piotr Haber, Piotr Marwitz, Jakub Draszkiewicz, Michał Jacewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
