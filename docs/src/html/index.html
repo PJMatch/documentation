@@ -1,0 +1,1652 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;no title&gt; &mdash; pjm-to-text 20.06.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=705bd0e0"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            pjm-to-text
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">AttentivePooling</span></code></a><ul>
+<li><a class="reference internal" href="#model.AttentivePooling.forward"><code class="docutils literal notranslate"><span class="pre">AttentivePooling.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model.CoSign1SModel"><code class="docutils literal notranslate"><span class="pre">CoSign1SModel</span></code></a><ul>
+<li><a class="reference internal" href="#model.CoSign1SModel.forward"><code class="docutils literal notranslate"><span class="pre">CoSign1SModel.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model.CoSignTemporalCNN"><code class="docutils literal notranslate"><span class="pre">CoSignTemporalCNN</span></code></a><ul>
+<li><a class="reference internal" href="#model.CoSignTemporalCNN.forward"><code class="docutils literal notranslate"><span class="pre">CoSignTemporalCNN.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model.GlossClassifier"><code class="docutils literal notranslate"><span class="pre">GlossClassifier</span></code></a><ul>
+<li><a class="reference internal" href="#model.GlossClassifier.forward"><code class="docutils literal notranslate"><span class="pre">GlossClassifier.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model.LSTM"><code class="docutils literal notranslate"><span class="pre">LSTM</span></code></a><ul>
+<li><a class="reference internal" href="#model.LSTM.forward"><code class="docutils literal notranslate"><span class="pre">LSTM.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model.SharedGlossHead"><code class="docutils literal notranslate"><span class="pre">SharedGlossHead</span></code></a><ul>
+<li><a class="reference internal" href="#model.SharedGlossHead.forward"><code class="docutils literal notranslate"><span class="pre">SharedGlossHead.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#train_cslr.compute_cosign_loss"><code class="docutils literal notranslate"><span class="pre">compute_cosign_loss()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.compute_wer"><code class="docutils literal notranslate"><span class="pre">compute_wer()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.evaluate"><code class="docutils literal notranslate"><span class="pre">evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.get_keep_prob"><code class="docutils literal notranslate"><span class="pre">get_keep_prob()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.get_kl_weight"><code class="docutils literal notranslate"><span class="pre">get_kl_weight()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.load_checkpoint"><code class="docutils literal notranslate"><span class="pre">load_checkpoint()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.load_training_run_manifest"><code class="docutils literal notranslate"><span class="pre">load_training_run_manifest()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.mirror_batch"><code class="docutils literal notranslate"><span class="pre">mirror_batch()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.save_checkpoint"><code class="docutils literal notranslate"><span class="pre">save_checkpoint()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.save_training_run"><code class="docutils literal notranslate"><span class="pre">save_training_run()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.seed_worker"><code class="docutils literal notranslate"><span class="pre">seed_worker()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+<li><a class="reference internal" href="#train_cslr.train_step"><code class="docutils literal notranslate"><span class="pre">train_step()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.evaluate"><code class="docutils literal notranslate"><span class="pre">evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.load_checkpoint"><code class="docutils literal notranslate"><span class="pre">load_checkpoint()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.load_training_run_manifest"><code class="docutils literal notranslate"><span class="pre">load_training_run_manifest()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.save_checkpoint"><code class="docutils literal notranslate"><span class="pre">save_checkpoint()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.save_training_run"><code class="docutils literal notranslate"><span class="pre">save_training_run()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.seed_worker"><code class="docutils literal notranslate"><span class="pre">seed_worker()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+<li><a class="reference internal" href="#train_islr.try_resume_checkpoint"><code class="docutils literal notranslate"><span class="pre">try_resume_checkpoint()</span></code></a></li>
+<li><a class="reference internal" href="#inference_cslr.build_lm_decoder"><code class="docutils literal notranslate"><span class="pre">build_lm_decoder()</span></code></a></li>
+<li><a class="reference internal" href="#inference_cslr.greedy_decode"><code class="docutils literal notranslate"><span class="pre">greedy_decode()</span></code></a></li>
+<li><a class="reference internal" href="#inference_cslr.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li><a class="reference internal" href="#inference_cslr.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#inference_islr.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li><a class="reference internal" href="#inference_islr.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_cslr.PJMDataset"><code class="docutils literal notranslate"><span class="pre">PJMDataset</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_cslr.build_gloss_vocab"><code class="docutils literal notranslate"><span class="pre">build_gloss_vocab()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_cslr.load_pjm_annotations"><code class="docutils literal notranslate"><span class="pre">load_pjm_annotations()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_cslr.pjm_ctc_collate_fn"><code class="docutils literal notranslate"><span class="pre">pjm_ctc_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_cslr.random_temporal_scaling"><code class="docutils literal notranslate"><span class="pre">random_temporal_scaling()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_islr.PJMDataset"><code class="docutils literal notranslate"><span class="pre">PJMDataset</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_islr.build_gloss_vocab"><code class="docutils literal notranslate"><span class="pre">build_gloss_vocab()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_islr.collate_fn"><code class="docutils literal notranslate"><span class="pre">collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_islr.mirror_clip"><code class="docutils literal notranslate"><span class="pre">mirror_clip()</span></code></a></li>
+<li><a class="reference internal" href="#pjm_dataloader_islr.temporal_scale_clip"><code class="docutils literal notranslate"><span class="pre">temporal_scale_clip()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.VideoCache"><code class="docutils literal notranslate"><span class="pre">VideoCache</span></code></a><ul>
+<li><a class="reference internal" href="#dataset_preprocess.VideoCache.load"><code class="docutils literal notranslate"><span class="pre">VideoCache.load()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.VideoCache.warmup"><code class="docutils literal notranslate"><span class="pre">VideoCache.warmup()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dataset_preprocess.build_samples"><code class="docutils literal notranslate"><span class="pre">build_samples()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.default_gloss_map_path"><code class="docutils literal notranslate"><span class="pre">default_gloss_map_path()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.load_gloss_map"><code class="docutils literal notranslate"><span class="pre">load_gloss_map()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.load_split_segments"><code class="docutils literal notranslate"><span class="pre">load_split_segments()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.load_timestamped_segments"><code class="docutils literal notranslate"><span class="pre">load_timestamped_segments()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.map_gloss"><code class="docutils literal notranslate"><span class="pre">map_gloss()</span></code></a></li>
+<li><a class="reference internal" href="#dataset_preprocess.unique_stems"><code class="docutils literal notranslate"><span class="pre">unique_stems()</span></code></a></li>
+<li><a class="reference internal" href="#stgcn.stgcn.STGCNArgs"><code class="docutils literal notranslate"><span class="pre">STGCNArgs</span></code></a></li>
+<li><a class="reference internal" href="#stgcn.stgcn.STGCNCoSign1s"><code class="docutils literal notranslate"><span class="pre">STGCNCoSign1s</span></code></a><ul>
+<li><a class="reference internal" href="#stgcn.stgcn.STGCNCoSign1s.forward"><code class="docutils literal notranslate"><span class="pre">STGCNCoSign1s.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#stgcn.gso.GSOGenerator"><code class="docutils literal notranslate"><span class="pre">GSOGenerator</span></code></a><ul>
+<li><a class="reference internal" href="#stgcn.gso.GSOGenerator.get_local_gso"><code class="docutils literal notranslate"><span class="pre">GSOGenerator.get_local_gso()</span></code></a></li>
+<li><a class="reference internal" href="#stgcn.gso.GSOGenerator.normalize_adj_matrix"><code class="docutils literal notranslate"><span class="pre">GSOGenerator.normalize_adj_matrix()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">pjm-to-text</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p id="module-model">Core neural network architecture.</p>
+<p>This module houses the core deep learning components, primarily focusing on Spatio-Temporal
+Graph Convolutional Networks (ST-GCN) to extract spatial relationships from skeletal graphs,
+and temporal modules (1D CNNs, BiLSTMs) to capture sequential dynamics.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.AttentivePooling">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">AttentivePooling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feat_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#AttentivePooling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.AttentivePooling" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Collapses a sequence of frames into a single feature vector using learned attention weights.
+Primarily used for Isolated Sign Language Recognition (ISLR).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>feat_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.AttentivePooling.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#AttentivePooling.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.AttentivePooling.forward" title="Link to this definition"></a></dt>
+<dd><p>Applies attention-based pooling over the temporal dimension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Input feature tensor of shape [Batch, Time, Channels].</p></li>
+<li><p><strong>lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of valid sequence lengths.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A temporally pooled 2D tensor of shape [Batch, Channels].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="model.CoSign1SModel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">CoSign1SModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stgcn_config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feat_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_hidden</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#CoSign1SModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.CoSign1SModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>One-stream CoSign model with complementary masking.</p>
+<p>Forward Pass Pipeline:
+1. Spatial Extraction: Skeleton sequences pass through the ST-GCN backbone.
+2. Branching &amp; Masking: The feature map is duplicated. Branch 1 is multiplied by an attention mask (Phi),</p>
+<blockquote>
+<div><p>and Branch 2 is multiplied by its inverse (1 - Phi).</p>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>Temporal Compression: 1D Temporal CNNs (C3-P2) reduce sequence length.</p></li>
+<li><p>Contextualization: BiLSTM captures global sentence context.</p></li>
+<li><p>Classification: Shared Gloss Heads output final CTC log-probabilities.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>stgcn_config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>feat_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>lstm_hidden</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>dropout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.CoSign1SModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#CoSign1SModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.CoSign1SModel.forward" title="Link to this definition"></a></dt>
+<dd><p>Performs the complete forward pass, splitting features into main and inverse branches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Input skeleton tensor of shape [Batch, Channels, Time, Vertices].</p></li>
+<li><p><strong>lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of sequence lengths.</p></li>
+<li><p><strong>keep_prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Feature retention probability for the masking module. Defaults to 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the processing results for both ‘phi’ and ‘phi_inv’ branches.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="model.CoSignTemporalCNN">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">CoSignTemporalCNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#CoSignTemporalCNN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.CoSignTemporalCNN" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Temporal convolutional network to extract features over time using 1D CNNs (C3-P2-C3-P2).
+Reduces the temporal resolution while increasing the feature dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>hidden_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>dropout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.CoSignTemporalCNN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#CoSignTemporalCNN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.CoSignTemporalCNN.forward" title="Link to this definition"></a></dt>
+<dd><p>Performs the forward pass for temporal convolution and pooling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Input feature tensor of shape [Batch, Channels, Time].</p></li>
+<li><p><strong>lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a><em>, </em><em>optional</em>) – 1D tensor of sequence lengths. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing:</dt><dd><ul class="simple">
+<li><p>Output feature tensor of shape [Batch, Channels, PooledTime].</p></li>
+<li><p>Updated 1D tensor of sequence lengths (if lengths were provided).</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>, <a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="model.GlossClassifier">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">GlossClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#GlossClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.GlossClassifier" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Isolated gloss classifier model combining ST-GCN, attention pooling, and a linear head.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>dropout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.GlossClassifier.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#GlossClassifier.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.GlossClassifier.forward" title="Link to this definition"></a></dt>
+<dd><p>Performs the forward pass to classify a single isolated sign.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Input skeleton tensor of shape [Batch, Channels, Time, Vertices].</p></li>
+<li><p><strong>lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of valid sequence lengths.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output class logits of shape [Batch, NumClasses].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="model.LSTM">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">LSTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#LSTM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.LSTM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Bidirectional LSTM to capture sequential context from temporal features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>hidden_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_layers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>dropout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.LSTM.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#LSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.LSTM.forward" title="Link to this definition"></a></dt>
+<dd><p>Performs the forward pass through the BiLSTM, utilizing sequence packing if lengths are provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Input sequence tensor of shape [Batch, Channels, Time].</p></li>
+<li><p><strong>lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a><em>, </em><em>optional</em>) – 1D tensor of valid sequence lengths. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output sequence tensor of shape [Batch, Time, 2 * HiddenSize].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="model.SharedGlossHead">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">SharedGlossHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feat_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#SharedGlossHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.SharedGlossHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Classification head that uses cosine similarity instead of standard linear projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feat_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>vocab_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.SharedGlossHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#SharedGlossHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.SharedGlossHead.forward" title="Link to this definition"></a></dt>
+<dd><p>Calculates the scaled cosine similarity between input features and learned class weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Input feature tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output logits/similarities of shape […, VocabSize].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-train_cslr">Training script for full sentences (CSLR).</p>
+<p>Teaches the model to read a continuous sequence of movements and translate it into a full sentence.
+Uses CTC, which lets the model learn without needing exact timestamps for every single word.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.compute_cosign_loss">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">compute_cosign_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kl_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#compute_cosign_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.compute_cosign_loss" title="Link to this definition"></a></dt>
+<dd><p>Calculates the combined loss for the CoSign architecture.</p>
+<p>Combines Connectionist Temporal Classification (CTC) Loss for text
+alignment and Bidirectional KL Divergence to separate co-occurring signs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The output dictionary returned by the model’s forward pass.</p></li>
+<li><p><strong>targets</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of ground truth token IDs.</p></li>
+<li><p><strong>target_lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of true lengths for each target.</p></li>
+<li><p><strong>criterion</strong> (<em>nn.Module</em>) – PyTorch CTCLoss module.</p></li>
+<li><p><strong>kl_weight</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Scalar multiplier for the KL divergence term. Defaults to KL_WEIGHT.</p></li>
+<li><p><strong>keep_prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Feature keep probability. Defaults to 0.8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing calculated partial and total losses.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.compute_wer">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">compute_wer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hypotheses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">references</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#compute_wer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.compute_wer" title="Link to this definition"></a></dt>
+<dd><p>Calculates the Word Error Rate (WER) using the jiwer library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hypotheses</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>]</em>) – A list of predicted string tokens per sentence.</p></li>
+<li><p><strong>references</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>]</em>) – A list of ground truth string tokens per sentence.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The calculated global Word Error Rate.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.evaluate">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id2gloss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluates the CSLR model using Greedy CTC Decoding and Word Error Rate (WER).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The trained model to evaluate.</p></li>
+<li><p><strong>dataloader</strong> (<em>DataLoader</em>) – DataLoader for validation/test data.</p></li>
+<li><p><strong>criterion</strong> (<em>nn.Module</em>) – The CTC loss function.</p></li>
+<li><p><strong>id2gloss</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Mapping from token IDs to gloss strings.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.device" title="(in PyTorch v2.12)"><em>torch.device</em></a>) – Compute device for evaluation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>avg_val_loss: The average computed validation loss over batches.</p></li>
+<li><p>avg_wer: The computed Word Error Rate.</p></li>
+<li><p>examples: A list of (reference, prediction) string token tuples.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.get_keep_prob">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">get_keep_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#get_keep_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.get_keep_prob" title="Link to this definition"></a></dt>
+<dd><p>Returns the temporal dropout keep probability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The current training epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The probability of keeping frames in the main branch.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.get_kl_weight">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">get_kl_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#get_kl_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.get_kl_weight" title="Link to this definition"></a></dt>
+<dd><p>Schedules the KL divergence weight dynamically based on the current epoch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The current training epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The active KL divergence weight scale.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.load_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.load_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Loads the checkpoint to resume training from a specific epoch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the saved .pth checkpoint file.</p></li>
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The initialized PyTorch model to load weights into.</p></li>
+<li><p><strong>optimizer</strong> (<em>optim.Optimizer</em>) – The optimizer to load states into.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing the starting epoch,</dt><dd><p>the updated model, and the updated optimizer.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, nn.Module, optim.Optimizer]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.load_config">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.load_config" title="Link to this definition"></a></dt>
+<dd><p>Loads the YAML configuration settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the YAML configuration file. Defaults to “config.yaml”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the parsed configuration parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.load_training_run_manifest">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">load_training_run_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#load_training_run_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.load_training_run_manifest" title="Link to this definition"></a></dt>
+<dd><p>Loads a JSON manifest file to recreate the environment of a previous training run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>manifest_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the saved run’s JSON manifest.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing saved hyperparameters and seeds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.main">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.main" title="Link to this definition"></a></dt>
+<dd><p>Main training loop for the Continuous Sign Language Recognition (CSLR) model.
+Handles data loading, model initialization, optimization steps, and checkpointing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.mirror_batch">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">mirror_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_lengths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#mirror_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.mirror_batch" title="Link to this definition"></a></dt>
+<dd><p>Applies horizontal mirroring to the skeleton frames for data augmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – A batch of skeleton sequences of shape [B, C, T, V].</p></li>
+<li><p><strong>frame_lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of original sequence lengths.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The mirrored skeleton data tensor with the same shape as the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.parse_args">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.parse_args" title="Link to this definition"></a></dt>
+<dd><p>Parses command-line arguments, including options to reproduce a specific CSLR run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Parsed arguments containing paths or flags for the script.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)">argparse.Namespace</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.save_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss2id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.save_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Saves model weights, optimizer, and validation metrics for the CSLR model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The PyTorch model being trained.</p></li>
+<li><p><strong>optimizer</strong> (<em>optim.Optimizer</em>) – The optimizer managing model updates.</p></li>
+<li><p><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The current epoch number.</p></li>
+<li><p><strong>gloss2id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The vocabulary mapping dictionary.</p></li>
+<li><p><strong>val_loss</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The calculated validation loss.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The random seed used.</p></li>
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The destination path for the .pth checkpoint file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.save_training_run">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">save_training_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#save_training_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.save_training_run" title="Link to this definition"></a></dt>
+<dd><p>Saves run details (hyperparameters, seeds) to JSON for future reproducibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Destination path for the JSON manifest.</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The training configuration dictionary.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The random seed used for this run.</p></li>
+<li><p><strong>deterministic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Flag indicating if strict determinism was enabled.</p></li>
+<li><p><strong>extra_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>, </em><em>optional</em>) – Additional info (like run IDs) to append. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.seed_worker">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">seed_worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#seed_worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.seed_worker" title="Link to this definition"></a></dt>
+<dd><p>Ensures each dataloader worker has a unique, deterministic seed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>worker_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The ID of the dataloader worker process.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.set_seed">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">set_seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#set_seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.set_seed" title="Link to this definition"></a></dt>
+<dd><p>Forces determinism across random, numpy, and torch environments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The integer seed value.</p></li>
+<li><p><strong>deterministic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to force strict PyTorch determinism (may slow down training). Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_cslr.train_step">
+<span class="sig-prename descclassname"><span class="pre">train_cslr.</span></span><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kl_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">device(type='cuda')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_cslr.html#train_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_cslr.train_step" title="Link to this definition"></a></dt>
+<dd><p>Executes a single forward and backward pass for a training batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The CoSign model.</p></li>
+<li><p><strong>optimizer</strong> (<em>optim.Optimizer</em>) – The optimizer for updating weights.</p></li>
+<li><p><strong>frames</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Padded batch of skeleton sequences.</p></li>
+<li><p><strong>frame_lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Original lengths of sequences.</p></li>
+<li><p><strong>targets</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Concatenated target gloss IDs.</p></li>
+<li><p><strong>target_lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Original lengths of targets.</p></li>
+<li><p><strong>criterion</strong> (<em>nn.Module</em>) – The CTC loss function.</p></li>
+<li><p><strong>kl_weight</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Multiplier for the KL divergence term. Defaults to KL_WEIGHT.</p></li>
+<li><p><strong>keep_prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Feature keep probability for the masking module. Defaults to KEEP_PROB.</p></li>
+<li><p><strong>grad_clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Maximum norm for gradient clipping. Defaults to GRAD_CLIP.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.device" title="(in PyTorch v2.12)"><em>torch.device</em></a>) – Device where calculations occur. Defaults to DEVICE.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of calculated losses and the active keep probability.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>], <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-train_islr">Training script for Isolated Sign Language Recognition (ISLR).</p>
+<p>Loads the skeleton data, sets up the model, and trains it to recognize one sign at a time.
+After every epoch, it checks how well the model is doing on new data and saves the best version.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.evaluate">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id2gloss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluates the ISLR model on the validation set.
+Computes loss, Top-1 accuracy, Top-3 accuracy, and Macro F1 Score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The trained ISLR classification model.</p></li>
+<li><p><strong>dataloader</strong> (<em>DataLoader</em>) – DataLoader providing the validation/test data.</p></li>
+<li><p><strong>criterion</strong> (<em>nn.Module</em>) – The CrossEntropyLoss function.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.device" title="(in PyTorch v2.12)"><em>torch.device</em></a>) – Compute device for evaluation.</p></li>
+<li><p><strong>id2gloss</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary mapping IDs back to glosses. Used for tracking worst classes. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing:</dt><dd><ul class="simple">
+<li><p>float: Average validation loss.</p></li>
+<li><p>float: Top-1 accuracy percentage.</p></li>
+<li><p>float: Top-3 accuracy percentage.</p></li>
+<li><p>float: Macro F1 Score for class balance.</p></li>
+<li><p>list[tuple]: Information about the worst-performing gloss classes.</p></li>
+<li><p>torch.Tensor: The full confusion matrix.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.load_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.load_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Loads the model and optimizer states from a given checkpoint path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the saved .pth checkpoint file.</p></li>
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The initialized PyTorch model to load weights into.</p></li>
+<li><p><strong>optimizer</strong> (<em>optim.Optimizer</em>) – The optimizer to load states into.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.device" title="(in PyTorch v2.12)"><em>torch.device</em></a>) – Compute device for mapping weights.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing the starting epoch,</dt><dd><p>the updated model, and the updated optimizer.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, nn.Module, optim.Optimizer]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.load_config">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.load_config" title="Link to this definition"></a></dt>
+<dd><p>Loads the YAML configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the YAML configuration file. Defaults to “config.yaml”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the parsed configuration parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.load_training_run_manifest">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">load_training_run_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#load_training_run_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.load_training_run_manifest" title="Link to this definition"></a></dt>
+<dd><p>Loads a previously saved JSON manifest to reproduce training parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>manifest_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the saved run’s JSON manifest.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing saved hyperparameters and seeds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.main">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.main" title="Link to this definition"></a></dt>
+<dd><p>Main training loop for the Isolated Sign Language Recognition (ISLR) model.
+Handles data loading, model initialization, optimization steps, and checkpointing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.parse_args">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.parse_args" title="Link to this definition"></a></dt>
+<dd><p>Parses command-line arguments for the ISLR training script.
+Allows passing a manifest file to reproduce a specific training run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Parsed arguments containing paths or flags for the script.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)">argparse.Namespace</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.save_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss2id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_acc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.save_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Saves the model weights, optimizer state, and current metrics to a checkpoint file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The PyTorch model being trained.</p></li>
+<li><p><strong>optimizer</strong> (<em>optim.Optimizer</em>) – The optimizer managing model updates.</p></li>
+<li><p><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The current epoch number.</p></li>
+<li><p><strong>gloss2id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The vocabulary mapping dictionary.</p></li>
+<li><p><strong>val_acc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The calculated validation accuracy (Top-1).</p></li>
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The destination path for the .pth checkpoint file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.save_training_run">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">save_training_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#save_training_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.save_training_run" title="Link to this definition"></a></dt>
+<dd><p>Saves the current run’s configuration, seeds, and environment info to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Destination path for the JSON manifest.</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The training configuration dictionary.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The random seed used for this run.</p></li>
+<li><p><strong>deterministic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Flag indicating if strict determinism was enabled.</p></li>
+<li><p><strong>extra_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>, </em><em>optional</em>) – Additional info to append. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.seed_worker">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">seed_worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#seed_worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.seed_worker" title="Link to this definition"></a></dt>
+<dd><p>Sets the seed for dataloader workers to maintain determinism in data loading.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>worker_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The ID of the dataloader worker process.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.set_seed">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">set_seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#set_seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.set_seed" title="Link to this definition"></a></dt>
+<dd><p>Sets the random seed across all libraries (random, numpy, torch)
+to ensure reproducible training results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The integer seed value.</p></li>
+<li><p><strong>deterministic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to force strict PyTorch determinism. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train_islr.try_resume_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">train_islr.</span></span><span class="sig-name descname"><span class="pre">try_resume_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train_islr.html#try_resume_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train_islr.try_resume_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Safely attempts to resume training from a checkpoint, falling back to scratch if incompatible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the saved .pth checkpoint file.</p></li>
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The PyTorch model.</p></li>
+<li><p><strong>optimizer</strong> (<em>optim.Optimizer</em>) – The optimizer.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.device" title="(in PyTorch v2.12)"><em>torch.device</em></a>) – Compute device for mapping weights.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The epoch to start from, the model, and the optimizer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, nn.Module, optim.Optimizer]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-inference_cslr">Testing script for full sentences.</p>
+<p>Uses the trained model to translate long videos into text. It calculates the Word Error Rate (WER)
+to tell you how many words it missed or swapped. It can also use a language dictionary (KenLM)
+to make the final sentences sound more natural.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="inference_cslr.build_lm_decoder">
+<span class="sig-prename descclassname"><span class="pre">inference_cslr.</span></span><span class="sig-name descname"><span class="pre">build_lm_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id2gloss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inference_cslr.html#build_lm_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inference_cslr.build_lm_decoder" title="Link to this definition"></a></dt>
+<dd><p>Builds a beam search decoder enhanced with a language model for smarter sentence predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id2gloss</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Dictionary mapping integer IDs to gloss strings.</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Configuration dictionary containing LM paths and beam settings.</p></li>
+<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><em>argparse.Namespace</em></a>) – Parsed command-line arguments to override defaults.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The initialized CTC decoder object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torchaudio.models.decoder.CUCTCDecoder</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inference_cslr.greedy_decode">
+<span class="sig-prename descclassname"><span class="pre">inference_cslr.</span></span><span class="sig-name descname"><span class="pre">greedy_decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id2gloss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inference_cslr.html#greedy_decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inference_cslr.greedy_decode" title="Link to this definition"></a></dt>
+<dd><p>Decodes predictions by picking the most likely sign at each step and removing duplicates/blanks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logits</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – Output probabilities from the model of shape [Batch, Time, Classes].</p></li>
+<li><p><strong>seq_lengths</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – 1D tensor of valid sequence lengths for each batch item.</p></li>
+<li><p><strong>id2gloss</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Dictionary mapping token IDs to gloss strings.</p></li>
+<li><p><strong>blank</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The index of the CTC blank token. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of decoded sentence hypotheses as strings.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inference_cslr.load_config">
+<span class="sig-prename descclassname"><span class="pre">inference_cslr.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inference_cslr.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inference_cslr.load_config" title="Link to this definition"></a></dt>
+<dd><p>Loads settings from the YAML configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the YAML configuration file. Defaults to “config.yaml”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the parsed configuration parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inference_cslr.main">
+<span class="sig-prename descclassname"><span class="pre">inference_cslr.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/inference_cslr.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inference_cslr.main" title="Link to this definition"></a></dt>
+<dd><p>Runs inference for the CSLR model and calculates the Word Error Rate (WER).</p>
+<p>Handles checkpoint loading, dataset initialization, decoding (greedy or LM beam search),
+and prints a detailed error breakdown.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-inference_islr">Testing script for Isolated Sign Language Recognition.</p>
+<p>Takes your best saved model, runs it on the test videos, and tells you exactly
+how often it guesses the right sign (and which signs it confuses the most).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="inference_islr.load_config">
+<span class="sig-prename descclassname"><span class="pre">inference_islr.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inference_islr.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inference_islr.load_config" title="Link to this definition"></a></dt>
+<dd><p>Loads settings from the YAML configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the YAML configuration file. Defaults to “config.yaml”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the parsed configuration parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inference_islr.main">
+<span class="sig-prename descclassname"><span class="pre">inference_islr.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/inference_islr.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inference_islr.main" title="Link to this definition"></a></dt>
+<dd><p>Runs inference for the ISLR model and prints classification accuracy metrics.</p>
+<p>Loads the trained checkpoint, processes the development/test dataset,
+and computes overall accuracy as well as detailed per-class confusion metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-pjm_dataloader_cslr">Data loading and sequence handling utilities for Continuous Sign Language Recognition (CSLR).</p>
+<p>This module prepares long, unsegmented skeleton sequences representing full sentences.
+It handles JSON annotation parsing, mapping sentence strings to sequences of numeric CTC tokens,
+and padding variable-length clips into uniform batches for training.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pjm_dataloader_cslr.PJMDataset">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pjm_dataloader_cslr.</span></span><span class="sig-name descname"><span class="pre">PJMDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss2id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_temporal_aug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporal_scale_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.8,</span> <span class="pre">1.2)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_cslr.html#PJMDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_cslr.PJMDataset" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.Dataset" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
+<p>PyTorch Dataset for loading continuous sign language sequences.</p>
+<p>Data Processing Pipeline:
+1. Parses JSON annotation files to extract the ordered list of glosses for a given video.
+2. Maps each gloss to a numeric ID, reserving index 0 for the CTC <cite>&lt;blank&gt;</cite> token.
+3. Loads the full <cite>.npy</cite> sequence of MediaPipe frames and concatenates necessary body keypoints.
+4. Applies random temporal scaling to the entire sentence sequence to simulate varying signing speeds.
+5. Utilizes a custom collate function (<cite>pjm_ctc_collate_fn</cite>) to pad frames and targets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>split_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>gloss2id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>)</p></li>
+<li><p><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>use_temporal_aug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>temporal_scale_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_cslr.build_gloss_vocab">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_cslr.</span></span><span class="sig-name descname"><span class="pre">build_gloss_vocab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_files</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_cslr.html#build_gloss_vocab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_cslr.build_gloss_vocab" title="Link to this definition"></a></dt>
+<dd><p>Creates a dictionary mapping each sign in the dataset to a unique ID (with &lt;blank&gt; for CTC).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the directory containing JSON annotation files.</p></li>
+<li><p><strong>split_files</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – List of paths to split files (e.g., training and dev sets).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing:</dt><dd><ul class="simple">
+<li><p>gloss2id: Dictionary mapping gloss strings to integer IDs.</p></li>
+<li><p>id2gloss: Dictionary mapping integer IDs back to gloss strings.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_cslr.load_pjm_annotations">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_cslr.</span></span><span class="sig-name descname"><span class="pre">load_pjm_annotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_cslr.html#load_pjm_annotations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_cslr.load_pjm_annotations" title="Link to this definition"></a></dt>
+<dd><p>Loads the sequence of signs for each video from JSON annotation files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the directory containing JSON annotation files.</p></li>
+<li><p><strong>split_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the text file containing the list of video stems for the dataset split.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping video stems to their corresponding ‘gloss_tokens’ and ‘text’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_cslr.pjm_ctc_collate_fn">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_cslr.</span></span><span class="sig-name descname"><span class="pre">pjm_ctc_collate_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_cslr.html#pjm_ctc_collate_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_cslr.pjm_ctc_collate_fn" title="Link to this definition"></a></dt>
+<dd><p>Pads frames and target labels so they can be processed together in a batch for CTC loss.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>]</em>) – A list of dictionaries containing single sample data
+from the dataset (seq_id, frames, target, frame_len).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dictionary containing:</dt><dd><ul class="simple">
+<li><p>’seq_ids’ (list[str]): List of string identifiers for the sequences.</p></li>
+<li><p>’frames’ (torch.Tensor): Padded skeleton tensor.</p></li>
+<li><p>’frame_lengths’ (torch.Tensor): 1D tensor of original sequence lengths.</p></li>
+<li><p>’targets’ (torch.Tensor): Padded target IDs tensor.</p></li>
+<li><p>’target_lengths’ (torch.Tensor): 1D tensor of original target lengths.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a> | <a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_cslr.random_temporal_scaling">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_cslr.</span></span><span class="sig-name descname"><span class="pre">random_temporal_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.8,</span> <span class="pre">1.2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_cslr.html#random_temporal_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_cslr.random_temporal_scaling" title="Link to this definition"></a></dt>
+<dd><p>Changes the speed of the video randomly for data augmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – The input skeleton sequence tensor of shape [Time, Vertices, Channels].</p></li>
+<li><p><strong>scale_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – The minimum and maximum scaling factors. Defaults to (0.8, 1.2).</p></li>
+<li><p><strong>min_frames</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The minimum allowed number of frames after scaling. Defaults to 4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The temporally scaled skeleton sequence.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-pjm_dataloader_islr">Data loading and preprocessing utilities for Isolated Sign Language Recognition (ISLR).</p>
+<p>This module is responsible for loading <cite>.npy</cite> arrays containing raw MediaPipe skeleton landmarks,
+filtering out irrelevant vertices, and converting them into uniform tensors of shape [T, V, C].
+It also provides tools for dynamic vocabulary building based on segmented gloss annotations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pjm_dataloader_islr.PJMDataset">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pjm_dataloader_islr.</span></span><span class="sig-name descname"><span class="pre">PJMDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss2id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss_map_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_blank_segments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_videos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mirror_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporal_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporal_scale_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.8,</span> <span class="pre">1.2)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_islr.html#PJMDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_islr.PJMDataset" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.Dataset" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
+<p>PyTorch Dataset implementation for short, isolated sign clips.</p>
+<p>Data Processing Pipeline:
+1. Reads start/end frame indices from annotation files for a specific gloss.
+2. Loads the corresponding <cite>.npy</cite> skeleton sequence from disk (or RAM cache).
+3. Normalizes 543 MediaPipe landmarks down to a specific subset (Body, Face, Hands).
+4. Applies stochastic augmentations during training (Temporal Scaling, Horizontal Mirroring).
+5. Returns a padded tensor representation ready for the ST-GCN network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>split_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>gloss2id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>)</p></li>
+<li><p><strong>gloss_map_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>add_blank_segments</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>cache_videos</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>warmup_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>mirror_prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>temporal_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>temporal_scale_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_islr.build_gloss_vocab">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_islr.</span></span><span class="sig-name descname"><span class="pre">build_gloss_vocab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss_map_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_blank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_islr.html#build_gloss_vocab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_islr.build_gloss_vocab" title="Link to this definition"></a></dt>
+<dd><p>Reads annotation files and creates a dictionary mapping each unique sign to an integer ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the directory with annotation data.</p></li>
+<li><p><strong>split_files</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – List of paths defining the dataset splits.</p></li>
+<li><p><strong>gloss_map_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to a custom mapping rules file. Defaults to None.</p></li>
+<li><p><strong>include_blank</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to reserve index 0 for the CTC blank token. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping gloss string identifiers to their numeric IDs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_islr.collate_fn">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_islr.</span></span><span class="sig-name descname"><span class="pre">collate_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_islr.html#collate_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_islr.collate_fn" title="Link to this definition"></a></dt>
+<dd><p>Pads clips of different lengths with zeros so they can be grouped into a single batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>]</em>) – A list of tuples containing (clip_tensor, gloss_id, length) for each sample.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing:</dt><dd><ul class="simple">
+<li><p>Padded clip sequences of shape [Batch, MaxTime, Vertices, Channels].</p></li>
+<li><p>Target labels tensor of shape [Batch].</p></li>
+<li><p>Sequence lengths tensor of shape [Batch].</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>, <a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>, <a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_islr.mirror_clip">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_islr.</span></span><span class="sig-name descname"><span class="pre">mirror_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_islr.html#mirror_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_islr.mirror_clip" title="Link to this definition"></a></dt>
+<dd><p>Flips the skeleton horizontally to simulate left/right hand swapping for data augmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>clip</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – A tensor representing a sequence of frames, shape [Time, Vertices, Channels].</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The augmented (mirrored) sequence tensor.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pjm_dataloader_islr.temporal_scale_clip">
+<span class="sig-prename descclassname"><span class="pre">pjm_dataloader_islr.</span></span><span class="sig-name descname"><span class="pre">temporal_scale_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.8,</span> <span class="pre">1.2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pjm_dataloader_islr.html#temporal_scale_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pjm_dataloader_islr.temporal_scale_clip" title="Link to this definition"></a></dt>
+<dd><p>Speeds up or slows down the video clip to make the model robust to different signing speeds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)"><em>torch.Tensor</em></a>) – A tensor representing a sequence of frames, shape [Time, Vertices, Channels].</p></li>
+<li><p><strong>scale_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – Min and max scaling factor. Defaults to (0.8, 1.2).</p></li>
+<li><p><strong>min_frames</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Minimum length to maintain after scaling. Defaults to 4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The temporally stretched or compressed sequence tensor.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch v2.12)">torch.Tensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-dataset_preprocess">In-memory preprocessing helpers for the PJM isolated-gloss dataset.</p>
+<p>This module handles the loading of raw MediaPipe arrays, parsing of JSON annotations,
+and caching of videos to speed up dataloader operations during training.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="dataset_preprocess.VideoCache">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">VideoCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#VideoCache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.VideoCache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>In-memory cache for raw .npy videos with optional main-process warmup.
+Used to prevent the dataloader from thrashing the disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>enabled</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset_preprocess.VideoCache.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#VideoCache.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.VideoCache.load" title="Link to this definition"></a></dt>
+<dd><p>Loads a raw video by stem. Writes to cache only before freeze().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stem</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The filename stem of the video (without extension).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The loaded numpy array containing the skeleton frames,</dt><dd><p>or None if the file does not exist.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset_preprocess.VideoCache.warmup">
+<span class="sig-name descname"><span class="pre">warmup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stems</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#VideoCache.warmup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.VideoCache.warmup" title="Link to this definition"></a></dt>
+<dd><p>Preloads all stems in the main process, then freezes the cache for forked workers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stems</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – A list of video stems to load into RAM.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.build_samples">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">build_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss2id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss_map_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_blank_segments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_videos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#build_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.build_samples" title="Link to this definition"></a></dt>
+<dd><p>Builds dataset samples in memory and returns them with a shared video cache.</p>
+<p>Iterates through the split definitions and annotations to define the start
+and end frames for every isolated sign clip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the raw sequence data.</p></li>
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the JSON annotations.</p></li>
+<li><p><strong>split_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the split definition file.</p></li>
+<li><p><strong>gloss2id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Dictionary mapping gloss names to IDs.</p></li>
+<li><p><strong>gloss_map_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to canonical mapping rules. Defaults to None.</p></li>
+<li><p><strong>add_blank_segments</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to inject &lt;blank&gt; sequences. Defaults to True.</p></li>
+<li><p><strong>cache_videos</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to initialize the video cache. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing:</dt><dd><ul class="simple">
+<li><p>A list of sample tuples: <cite>(stem, start_frame, end_frame, gloss_id)</cite>.</p></li>
+<li><p>The instantiated and optionally populated VideoCache object.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>], <a class="reference internal" href="#dataset_preprocess.VideoCache" title="dataset_preprocess.VideoCache">VideoCache</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.default_gloss_map_path">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">default_gloss_map_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#default_gloss_map_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.default_gloss_map_path" title="Link to this definition"></a></dt>
+<dd><p>Returns the default gloss map path bundled with the annotations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The resolved absolute path to <cite>gloss_map.json</cite>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.load_gloss_map">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">load_gloss_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gloss_map_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#load_gloss_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.load_gloss_map" title="Link to this definition"></a></dt>
+<dd><p>Loads an optional gloss canonicalization map without modifying dataset files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gloss_map_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to the gloss map JSON. Defaults to None.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping raw gloss names to their canonical forms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.load_split_segments">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">load_split_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#load_split_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.load_split_segments" title="Link to this definition"></a></dt>
+<dd><p>Reads a split file into a dictionary format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>split_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the text file containing the dataset split.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dictionary mapping video stems to</dt><dd><p>a list of tuples containing (start_frame, gloss_name).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.load_timestamped_segments">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">load_timestamped_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">annotation_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#load_timestamped_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.load_timestamped_segments" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of timestamped glosses and the End-of-Record (EoR) frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>annotation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path to the directory with JSON annotations.</p></li>
+<li><p><strong>stem</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The video stem to load.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing:</dt><dd><ul class="simple">
+<li><p>A list of tuples containing (gloss_name, start_frame).</p></li>
+<li><p>The integer frame index for the EoR token (or None if not found).</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>]], <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a> | None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.map_gloss">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">map_gloss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gloss_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gloss_map</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#map_gloss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.map_gloss" title="Link to this definition"></a></dt>
+<dd><p>Returns the canonical gloss name using the gloss map, falling back to the original name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gloss_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The raw gloss name from annotations.</p></li>
+<li><p><strong>gloss_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The loaded gloss mapping dictionary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The canonical gloss string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dataset_preprocess.unique_stems">
+<span class="sig-prename descclassname"><span class="pre">dataset_preprocess.</span></span><span class="sig-name descname"><span class="pre">unique_stems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset_preprocess.html#unique_stems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset_preprocess.unique_stems" title="Link to this definition"></a></dt>
+<dd><p>Returns a sorted list of unique video stems referenced by dataset samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>]</em>) – The generated dataset samples.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A sorted list of unique string stems.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-stgcn.stgcn">This module contains code for our implementation of 1-stream CoSign architecture.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="stgcn.stgcn.STGCNArgs">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stgcn.stgcn.</span></span><span class="sig-name descname"><span class="pre">STGCNArgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_conv_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gso</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_bias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">droprate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stgcn/stgcn.html#STGCNArgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stgcn.stgcn.STGCNArgs" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class that holds specific STGCN configuration arguments.</p>
+<p>Later the object of this class is passed to the constructor of STGCN.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="stgcn.stgcn.STGCNCoSign1s">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stgcn.stgcn.</span></span><span class="sig-name descname"><span class="pre">STGCNCoSign1s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stgcn/stgcn.html#STGCNCoSign1s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stgcn.stgcn.STGCNCoSign1s" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>CoSign-1s’ ST-GCN implementation.</p>
+<p>Based on:
+&#64;InProceedings{Jiao_2023_ICCV,</p>
+<blockquote>
+<div><dl class="simple">
+<dt>author    = {Jiao, Peiqi and Min, Yuecong and Li, Yanan and Wang, Xiaotao and Lei, Lei and</dt><dd><p>Chen, Xilin},</p>
+</dd>
+<dt>title     = {CoSign: Exploring Co-occurrence Signals in Skeleton-based Continuous Sign</dt><dd><p>Language Recognition},</p>
+</dd>
+<dt>booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision</dt><dd><p>(ICCV)},</p>
+</dd>
+</dl>
+<p>month     = {October},
+year      = {2023},
+pages     = {20676-20686}</p>
+</div></blockquote>
+<p>}</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stgcn.stgcn.STGCNCoSign1s.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stgcn/stgcn.html#STGCNCoSign1s.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stgcn.stgcn.STGCNCoSign1s.forward" title="Link to this definition"></a></dt>
+<dd><p>Forward function of CoSign1s ST-GCN module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – [Batch, Channels, Timesteps, Vertices] -&gt; [B, 2, 1024, T]
+x is original, all-point vector from the .npy files</p></li>
+<li><p><strong>keep_prob</strong> – probability of keeping the feature during masking.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>frame-wise feature for LSTM</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>v_fused</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-stgcn.gso">Module for generating Graph Signl Operator.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="stgcn.gso.GSOGenerator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stgcn.gso.</span></span><span class="sig-name descname"><span class="pre">GSOGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stgcn/gso.html#GSOGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stgcn.gso.GSOGenerator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for dynamic GSO generation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stgcn.gso.GSOGenerator.get_local_gso">
+<span class="sig-name descname"><span class="pre">get_local_gso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stgcn/gso.html#GSOGenerator.get_local_gso"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stgcn.gso.GSOGenerator.get_local_gso" title="Link to this definition"></a></dt>
+<dd><p>Creates GSO only for a given subset of the MediaPipe’s graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a>) – list of global Mediapipe IDs</p></li>
+<li><p><strong>group_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – ‘face’, ‘body’ or ‘hands’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>GSO of a target subset</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>local_gso</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stgcn.gso.GSOGenerator.normalize_adj_matrix">
+<span class="sig-name descname"><span class="pre">normalize_adj_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adj_matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stgcn/gso.html#GSOGenerator.normalize_adj_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#stgcn.gso.GSOGenerator.normalize_adj_matrix" title="Link to this definition"></a></dt>
+<dd><p>Normalize adjacancy matrix acording to the CoSign paper (eqn. 3).</p>
+</dd></dl>
+
+</dd></dl>
+
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

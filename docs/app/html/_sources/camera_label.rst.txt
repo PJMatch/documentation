@@ -1,0 +1,7 @@
+camera\_label
+=============
+
+.. automodule:: camera_label
+   :members:
+   :show-inheritance:
+   :undoc-members:

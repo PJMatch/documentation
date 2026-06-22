@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stgcn.gso &mdash; pjm-to-text 20.06.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=705bd0e0"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pjm-to-text
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pjm-to-text</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">stgcn.gso</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for stgcn.gso</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module for generating Graph Signl Operator.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mediapipe.tasks.python</span><span class="w"> </span><span class="kn">import</span> <span class="n">vision</span>
+
+
+<div class="viewcode-block" id="GSOGenerator">
+<a class="viewcode-back" href="../../index.html#stgcn.gso.GSOGenerator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GSOGenerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for dynamic GSO generation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor of GSOGenerator class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config_path: path to json file with skeleton configuration</span>
+
+<span class="sd">        The json file MUST resemble a dict in this form:</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;face&quot;: [],</span>
+<span class="sd">                &quot;mouth&quot;: [],</span>
+<span class="sd">                &quot;hands&quot;: [],</span>
+<span class="sd">                &quot;body&quot;: []</span>
+<span class="sd">            }</span>
+<span class="sd">        where the lists are lists of points that you want to inclue in traininig</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master_edges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;face&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">conn</span> <span class="ow">in</span> <span class="n">vision</span><span class="o">.</span><span class="n">FaceLandmarksConnections</span><span class="o">.</span><span class="n">FACE_LANDMARKS_TESSELATION</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;mouth&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">conn</span> <span class="ow">in</span> <span class="n">vision</span><span class="o">.</span><span class="n">FaceLandmarksConnections</span><span class="o">.</span><span class="n">FACE_LANDMARKS_LIPS</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;hands&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">conn</span> <span class="ow">in</span> <span class="n">vision</span><span class="o">.</span><span class="n">HandLandmarksConnections</span><span class="o">.</span><span class="n">HAND_CONNECTIONS</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">conn</span> <span class="ow">in</span> <span class="n">vision</span><span class="o">.</span><span class="n">PoseLandmarksConnections</span><span class="o">.</span><span class="n">POSE_LANDMARKS</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="c1"># wrist_to_fingers hold wrist-to-fingers</span>
+        <span class="c1"># connections absent in mediapipe but helpful (maybe) for the model</span>
+        <span class="n">wrist_to_fingers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>  <span class="c1"># to index</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>  <span class="c1"># to middle</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span>  <span class="c1"># to ring</span>
+            <span class="c1"># to pinky already in mediapipe so we dont add it manually</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master_edges</span><span class="p">[</span><span class="s2">&quot;hands&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">wrist_to_fingers</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gsos</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_all_gsos</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_all_gsos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterates over config and generates GSO matricies.&quot;&quot;&quot;</span>
+        <span class="n">topology_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;l_hand&quot;</span><span class="p">:</span> <span class="s2">&quot;hands&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;r_hand&quot;</span><span class="p">:</span> <span class="s2">&quot;hands&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;face&quot;</span><span class="p">:</span> <span class="s2">&quot;face&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mouth&quot;</span><span class="p">:</span> <span class="s2">&quot;mouth&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;body&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">indices</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Group </span><span class="si">{</span><span class="n">group_name</span><span class="si">}</span><span class="s2"> has no indices in config. Skipping.&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">base_topology</span> <span class="o">=</span> <span class="n">topology_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group_name</span><span class="p">,</span> <span class="n">group_name</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">gsos</span><span class="p">[</span><span class="n">group_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_gso</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">base_topology</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GSOGenerator.get_local_gso">
+<a class="viewcode-back" href="../../index.html#stgcn.gso.GSOGenerator.get_local_gso">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_local_gso</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_idx</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">group_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates GSO only for a given subset of the MediaPipe&#39;s graph.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            target_idx (list): list of global Mediapipe IDs</span>
+<span class="sd">            group_type (str): &#39;face&#39;, &#39;body&#39; or &#39;hands&#39;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            local_gso: GSO of a target subset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_vertex</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_idx</span><span class="p">)</span>
+        <span class="n">id_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">global_id</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">global_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target_idx</span><span class="p">)}</span>
+
+        <span class="n">global_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">master_edges</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group_type</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_vertex</span><span class="p">,</span> <span class="n">n_vertex</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">start_id</span><span class="p">,</span> <span class="n">end_id</span> <span class="ow">in</span> <span class="n">global_edges</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start_id</span> <span class="ow">in</span> <span class="n">id_map</span> <span class="ow">and</span> <span class="n">end_id</span> <span class="ow">in</span> <span class="n">id_map</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">id_map</span><span class="p">[</span><span class="n">start_id</span><span class="p">],</span> <span class="n">id_map</span><span class="p">[</span><span class="n">end_id</span><span class="p">]</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">local_gso</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_adj_matrix</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">local_gso</span></div>
+
+
+<div class="viewcode-block" id="GSOGenerator.normalize_adj_matrix">
+<a class="viewcode-back" href="../../index.html#stgcn.gso.GSOGenerator.normalize_adj_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">normalize_adj_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adj_matrix</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Normalize adjacancy matrix acording to the CoSign paper (eqn. 3).&quot;&quot;&quot;</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">adj_matrix</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Eye</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.001</span>
+
+        <span class="c1"># calculate GSO for k=0 (A0 = I)</span>
+        <span class="n">d0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Eye</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">epsilon</span>
+        <span class="n">d0_inv_sqrt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">d0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">D0_inv_sqrt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d0_inv_sqrt</span><span class="p">)</span>
+        <span class="n">GSO_0</span> <span class="o">=</span> <span class="n">D0_inv_sqrt</span> <span class="o">@</span> <span class="n">Eye</span> <span class="o">@</span> <span class="n">D0_inv_sqrt</span>
+
+        <span class="c1"># calculate GSO for k=1 (A1 = A)</span>
+        <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">epsilon</span>  <span class="c1"># Lambda_ii dla A</span>
+        <span class="n">d1_inv_sqrt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">D1_inv_sqrt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d1_inv_sqrt</span><span class="p">)</span>
+        <span class="n">GSO_1</span> <span class="o">=</span> <span class="n">D1_inv_sqrt</span> <span class="o">@</span> <span class="n">A</span> <span class="o">@</span> <span class="n">D1_inv_sqrt</span>
+
+        <span class="n">GSO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">GSO_0</span><span class="p">,</span> <span class="n">GSO_1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">GSO</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">pose</span> <span class="o">=</span> <span class="p">([(</span><span class="n">conn</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">conn</span> <span class="ow">in</span> <span class="n">vision</span><span class="o">.</span><span class="n">PoseLandmarksConnections</span><span class="o">.</span><span class="n">POSE_LANDMARKS</span><span class="p">],)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pose</span><span class="p">)</span>
+    <span class="n">dwd</span> <span class="o">=</span> <span class="n">GSOGenerator</span><span class="p">(</span><span class="s2">&quot;./example_config.json&quot;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, some text.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
