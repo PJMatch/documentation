@@ -90,7 +90,7 @@ Projekt przewidywał utworzenie modułu tłumaczenia ciągłego języka migowego
     \item PJM sentence independant - w zbiorze Train i test pojawiają się różne zdania ale ci sami migający
 \end{enumerate}
 Niskie wyniki modelu na datasecie Pheonix-14T nie są zgodne z wynikami publikacji~\cite{cosign}, co może wynikać z niejednoznacznego opisu implementacji w artykule. W związku z tym nie udało się zweryfikować poprawności odtworzonego modelu.
-WER na datasecie PJM wynika z overfittingu modelu na zdaniach, w datasecie nie zawarto wystarczającej liczby glossów użytych w różnych kontekstach, aby model mógł je poprawnie rozróżniać. Co skutkuje niskim WER na zdaniach - natomiast w przypadku gdy migane zdanie
+WER na datasecie PJM wynika z overfittingu modelu na zdaniach, w datasecie nie zawarto wystarczającej liczby glossów użytych w różnych kontekstach, aby model mógł je poprawnie rozróżniać. Skutkuje to niskim WER na zdaniach ze zbioru uczącego - natomiast w przypadku gdy migane zdanie
 nie znajduej sie w zbiorze uczącym, model nie jest w stanie poprawnie rozpoznać pojedyńczych glossów.
 
 Ze względu na fakt, że architektura CoSign-1s z założenia analizuje całe nagrania wideo i nie przewiduje tłumaczenia "w locie" (\textit{ang. online translation}), na potrzeby niniejszego projektu stworzono system wykorzystujący technikę ruchomego okna (\textit{ang. sliding window}).
