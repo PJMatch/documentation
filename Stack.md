@@ -11,6 +11,6 @@
 * Python
 * SpaCy-Stanza
 * FastAPI
-* Blender
-* Open Mocap
+* Uvicorn
 * Unreal Engine 5
+* VaRest
