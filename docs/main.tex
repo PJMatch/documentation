@@ -50,18 +50,81 @@
 Przykład cytowania \cite{kowalski2023}
 
 \section{Stack technologiczny}
+\subsection{Text-to-PJM}
+\begin{itemize}
+    \item Python 3.11
+    \item SpaCy-Stanza
+    \item FastAPI
+    \item Uvicorn
+    \item Unreal Engine 5
+    \item VaRest
+\end{itemize}
 
 \section{Opis rozwiązań}
 
 \subsection{Dataset}
 \subsection{Text-to-PJM}
+\subsubsection{Backend}
+
+\begin{center}
+    \textbf{Moduł NLP}
+\end{center}
+Backend modułu Text-to-PJM odpowiada za przetwarzanie tekstu wejściowego w języku polskim na uporządkowaną reprezentację glos, która następnie jest wykorzystywana przez aplikację wizualną do odtworzenia odpowiednich animacji PJM.\\\\
+Pierwszym etapem działania systemu jest analiza tekstu wejściowego. Użytkownik podaje zdanie lub zestaw zdań w języku polskim, które trafiają do modułu odpowiedzialnego za lematyzację oraz uproszczoną transformację składniową. Do analizy językowej wykorzystano bibliotekę \texttt{spacy\_stanza}, która pozwala na przetwarzanie języka polskiego z uwzględnieniem takich informacji jak lemat wyrazu, część mowy, zależności składniowe oraz cechy morfologiczne.\\\\
+Głównym zadaniem modułu lematyzacji jest sprowadzenie odmienionych form wyrazów do ich form podstawowych. Przykładowo słowa takie jak \textit{mam}, \textit{miałem} lub \textit{miała} mogą zostać sprowadzone do lematu \textit{mieć}. Dzięki temu system może łatwiej dopasować słowa z tekstu wejściowego do dostępnych animacji, których nazwy są przechowywane w formie bazowej. Jest to szczególnie istotne w języku polskim, ponieważ jedno słowo może występować w wielu różnych formach gramatycznych.\\\\
+Oprócz samej lematyzacji backend wykonuje dodatkowe operacje przygotowujące tekst do reprezentacji w PJM. System pomija część elementów, które nie są bezpośrednio reprezentowane w docelowym zapisie glosowym, a także zmienia kolejność wyrazów. Moduł został również rozszerzony o obsługę zdań pytających, przeczeń, czasowników posiłkowych, wyrażeń czasowych oraz podział zdań na klauzule.\\\\
+Wygenerowana reprezentacja tekstu uwzględnia formy podstawowe wyrazów, kolejność glos oraz dodatkowe oznaczenia zgodne z przyjętym sposobem prezentowania treści w Polskim Języku Migowym.\\
+
+\begin{center}
+    \textbf{FastAPI}
+\end{center}
+Drugim elementem backendu jest aplikacja API przygotowana z wykorzystaniem frameworka \texttt{FastAPI}. Jej zadaniem jest udostępnienie funkcji przetwarzania tekstu innym częściom systemu, przede wszystkim aplikacji wizualnej stworzonej w Unreal Engine.\\\\
+Aplikacja API udostępnia endpoint, do którego przesyłany jest tekst wpisany przez użytkownika. Po odebraniu żądania backend przekazuje tekst do modułu NLP, a następnie zwraca wynik w formacie JSON. Odpowiedź zawiera listę glosów oraz elementów specjalnych, które mogą zostać wykorzystane przez aplikację wizualną do wyszukania i odtworzenia odpowiednich animacji.\\\\
+Po wygenerowaniu glosów backend sprawdza, czy dla każdego z nich istnieje odpowiadająca animacja. Lista dostępnych animacji jest wczytywana z pliku, w którym zapisano nazwy animacji znajdujących się w projekcie. Jeżeli dana glosa posiada odpowiadającą jej animację, zostaje przekazana do aplikacji wizualnej jako nazwa animacji do odtworzenia. W przypadku braku gotowej animacji system realizuje literowanie danego słowa.\\\\
+FastAPI umożliwia komunikację z aplikacją wizualną przez żądania HTTP. Dzięki temu część odpowiedzialna za przetwarzanie tekstu jest oddzielona od projektu w Unreal Engine i może być rozwijana niezależnie od front-endu.\\
+
+\begin{center}
+    \textbf{Aplikacja wizualna}
+\end{center}
+Główną część aplikacji stanowi środowisko Unreal Engine 5, w którym realizowana jest wizualizacja języka migowego przy użyciu modelu awatara MetaHuman.\\\\
+Na początkowym etapie projektu animacje były przygotowywane z wykorzystaniem programu Blender oraz dodatku OpenMocap. Rozwiązanie to pozwalało na automatyczne generowanie animacji na podstawie nagrań z jednej, bądź dwóch kamer. Niestety jednak występowały w tym rozwiązaniu liczne problemy związane na przykład z kompatybilnością szkieletów lub poprawnym eksportem animacji do formatu FBX. Dodatkowo pojawiały się trudności podczas przenoszenia animacji do środowiska Unreal Engine 5 oraz ich retargetowania na model MetaHuman. Z tego względu zdecydowano się na zmianę sposobu generowania animacji.\\\\
+W dalszej części projektu wykorzystano Laboratorium Zanurzonej Wizualizacji Przestrzennej (LZWP), wyposażone w system śledzenia ruchu dłoni (finger tracking). Pozwoliło to na dokładniejsze odwzorowanie ruchów palców i dłoni, które stanowią kluczowy element języka migowego. Zarejestrowane animacje były bezpośrednio importowane do środowiska Unreal Engine 5 i przypisywane do modelu MetaHuman.\\\\
+Proces działania systemu rozpoczyna się od przekształcenia zdania tekstowego na sekwencję glossów odpowiadających poszczególnym znakom języka migowego. Każdy gloss jest powiązany z odpowiednią animacją przechowywaną w aplikacji.\\\\
+Komunikacja pomiędzy modułem tłumaczenia a aplikacją została zrealizowana z wykorzystaniem biblioteki VaRest oraz frameworka FastAPI. Moduł tłumaczenia zwraca odpowiedź w postaci formatu JSON zawierającego listę nazw animacji odpowiadających poszczególnym znakom.\\\\
+Po stronie Unreal Engine 5 przygotowano strukturę Blueprintów odpowiedzialną za obsługę interfejsu użytkownika, wysyłanie zapytań HTTP oraz odbieranie odpowiedzi z serwera FastAPI. Otrzymane dane są następnie przekazywane do systemu odpowiedzialnego za odtwarzanie animacji.\\\\
+W celu zarządzania sekwencjami znaków zaimplementowano komponent \texttt{PJMPlayer}. Komponent ten odpowiada za tworzenie kolejki animacji, ich sekwencyjne odtwarzanie oraz zarządzanie czasem przejść pomiędzy kolejnymi znakami. Dzięki temu możliwe jest automatyczne prezentowanie całych zdań bez konieczności ręcznego uruchamiania poszczególnych animacji.\\\\
+Do odtwarzania znaków wykorzystano mechanizmy dostępne w Unreal Engine 5, takie jak Animation Montage, Slot Animations oraz Inertialization. Pozwoliło to na uzyskanie bardziej naturalnych i płynnych przejść pomiędzy kolejnymi znakami języka migowego.\\\\
+Całość została zaprojektowana w sposób modułowy, dzięki czemu możliwe jest dalsze rozszerzanie bazy znaków, rozbudowa modułu tłumaczenia oraz implementacja kolejnych funkcjonalności bez konieczności modyfikowania głównej architektury aplikacji.\\
+
 \subsection{PJM-to-text}
 
 \section{Opis problemów w trakcie realizacji projektu}
 
-
 \subsection{Dataset}
 \subsection{Text-to-PJM}
+\begin{itemize}
+    \item Niedokładność animacji generowanych z pluginu OpenMocap
+    \item Niekompatybilność szkieletów blendera i Unreal Engine 5 (błędy retargetowania animacji)
+    \item Problemy z przenoszeniem animacji z blendera do Unreal Engine 5
+    \item Problemy z płynnością przejść animacji
+    \item Ucinanie końców animacji przez łączenie animacji
+    \item Powrót awatara do pozycji neutralnej po zakończeniu każdej z animacji (przy małym czasie przejścia)
+    
+    \item Problemy z awatarem MetaHuman 
+    \item Częste awarie Unreal Engine 5
+    \item Problemy z importem animacji do Unreal Engine 5 (brakujące kości, niekompatybilne szkieletu)
+    
+    \item Niedokładność śledzenia ruchu palców w systemie finger tracking
+    \item Poruszanie sie awatara poprzez błędy w systemie śledzenia ruchu palców (inverse kinematics w Unreal Engine 5 nie działało najlepiej we współpracy z ruchem dłoni)
+    \item Potrzeby poprawiania animacji przez niedokładności
+
+    \item Zbyt duże pliki z projektu nie dające się przesyłać na repozytorium
+
+    \item Problemy z lematyzacją i transformacją składniową tekstu wejściowego
+    \item Trudności z obsługą zdań złożonych i podziałem tekstu na klauzule
+    \item Halucynacje modelu spacy\_stanza
+
+\end{itemize}
 \subsection{PJM-to-text}
 
 \section{Perspektywa dalszego rozwoju projektu}
