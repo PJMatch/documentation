@@ -71,19 +71,27 @@ Projekt przewidywał utworzenie modułu tłumaczenia ciągłego języka migowego
 % tabela poniezej tylko poglądowa, wazne zeby uzywac tabel z pakietu booktabs
 \begin{table}[H]
     \centering
-    \caption{Przykładowa tabela - ZMIENIC NA NASZE WYNIKI}
+    \caption{Dodać BLUE wyniki}
     \label{tab:train_res_cosign}
     \begin{tabular}{llccc}
         \toprule
-        Kolumna & Kolumna & Kolumna & Kolumna & kolumna \\
+        Typ datasetu& WER \\
         \midrule
-        CoSign-1s    & CSLR        & 91,3\%     & 18,2\% & 24,5 h \\
-        ---- & CSLR       & 88,7\%     & 21,4\% & 18,0 h \\
+        Pheonix-14T & 38\% \\
+        PJM signer independant& 12\% \\
+        PJM sentence independant& 55\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-[SKOMENTOWAĆ WYNIKI Z TABELI]
+\begin{enumerate}
+    \item Pheonix-14T - dataset do CSLR dla języka niemieckiego, zawierający 14 000 nagrań wideo. Zbiór ten jest powszechnie używany jako benchmark w dziedzinie rozpoznawania języka migowego.
+    \item PJM signer independant - w zbiorze Train i test pojawiają się te same zdania ale różni migający
+    \item PJM sentence independant - w zbiorze Train i test pojawiają się różne zdania ale ci sami migający
+\end{enumerate}
+Niskie wyniki modelu na datasecie Pheonix-14T nie są zgodne z wynikami publikacji~\cite{cosign}, co może wynikać z niejednoznacznego opisu implementacji w artykule. W związku z tym nie udało się zweryfikować poprawności odtworzonego modelu.
+WER na datasecie PJM wynika z overfittingu modelu na zdaniach, w datasecie nie zawarto wystarczającej liczby glossów użytych w różnych kontekstach, aby model mógł je poprawnie rozróżniać. Co skutkuje niskim WER na zdaniach - natomiast w przypadku gdy migane zdanie
+nie znajduej sie w zbiorze uczącym, model nie jest w stanie poprawnie rozpoznać pojedyńczych glossów.
 
 Ze względu na fakt, że architektura CoSign-1s z założenia analizuje całe nagrania wideo i nie przewiduje tłumaczenia "w locie" (\textit{ang. online translation}), na potrzeby niniejszego projektu stworzono system wykorzystujący technikę ruchomego okna (\textit{ang. sliding window}).
 
@@ -115,23 +123,131 @@ Oprócz tłumaczenia ciągłego, zaimplementowano dedykowany potok przetwarzania
 
 Wewnętrzna architektura klasyfikatora izolowanych znaków bazuje na komponencie ST-GCN (\textit{ang. Spatial-Temporal Graph Convolutional Network})~\cite{stgcn-paper}. Implementacja tego modułu została oparta na otwartoźródłowym repozytorium~\cite{stgcn-repo} (implementacja ta została również użyta przy odtwarzaniu modelu CoSign-1s dla CSLR). Komponent ten odpowiada za ekstrakcję głębokich cech z sekwencji przestrzennych grafów (współrzędnych punktów kluczowych dłoni, twarzy i postawy). Wyekstrahowana przez moduł grafowy cechy - tensor o wymiarach $B \times 1024 \times T$ (gdzie $B$ to rozmiar wsadu (\textit{ang. batch}), a $T$ oznacza liczbę klatek w oknie) jest następnie poddawana operacji redukcji wymiaru czasowego przy użyciu mechanizmu uwagi (\textit{ang. Attentive Pooling}). Mechanizm ten agreguje cechy wzdłuż osi czasu, ucząc się przypisywać wyższe wagi klatkom niosącym najważniejsze informacje semantyczne i pomijając klatki nieistotne. Uzyskany w ten sposób wektor cech o stałej długości 1024 trafia do w pełni połączonej warstwy liniowej (\textit{ang. linear classification head}), która mapuje go na przestrzeń logitów odpowiadającą liczbie rozpoznawanych klas.
 
-% TUTAJ WYNIKI NASZEGO UCZEINA ISLR
-% tabela poniezej tylko poglądowa, wazne zeby uzywac tabel z pakietu booktabs
+
 \begin{table}[H]
-    \centering
-    \caption{Przykładowa tabela - ZMIENIC NA NASZE WYNIKI}
-    \label{tab:train_islr_res}
-    \begin{tabular}{llccc}
-        \toprule
-        Kolumna & Kolumna & Kolumna & Kolumna & kolumna \\
-        \midrule
-        CoSign-1s    & ISLR        & 91,3\%     & 18,2\% & 24,5 h \\
-        ---- & ISLR       & 88,7\%     & 21,4\% & 18,0 h \\
-        \bottomrule
-    \end{tabular}
+\centering
+\begin{tabular}{lrrrl}
+\toprule
+Gloss & Poprawne & Wszystkie& Dokładność& Najczęstsza pomyłka \\
+\midrule
+NIE & 0 & 1 & 0,0\% & SŁYSZEć (1/1) \\
+POMÓC-MI & 0 & 1 & 0,0\% & NOWY (1/1) \\
+TO & 0 & 5 & 0,0\% & TY (2/5) \\
+WIECZÓR & 0 & 2 & 0,0\% & NOC (2/2) \\
+TERAZ & 2 & 22 & 9,1\% & DZISIAJ (20/22) \\
+PAMIĘTAĆ & 4 & 18 & 22,2\% & POMYSŁ (11/18) \\
+DLA & 4 & 18 & 22,2\% & TEN (4/18) \\
+SŁYSZEĆ & 4 & 16 & 25,0\% & NIE-SŁYSZEĆ (9/16) \\
+ROBIĆ & 5 & 18 & 27,8\% & CO-ROBIĆ (7/18) \\
+NIE-MIEĆ & 9 & 20 & 45,0\% & NIE-CHCIEĆ (8/20) \\
+ZOSTAĆ & 7 & 15 & 46,7\% & DUŻY (4/15) \\
+WY & 10 & 21 & 47,6\% & MY (8/21) \\
+SIOSTRA & 17 & 35 & 48,6\% & RODZEŃSTWO (8/35) \\
+ON & 12 & 24 & 50,0\% & TY (8/24) \\
+WIDZIEĆ & 1 & 2 & 50,0\% & WIEDZIEĆ (1/2) \\
+ŚRODA & 1 & 2 & 50,0\% & DOBRY (1/2) \\
+TEN & 31 & 56 & 55,4\% & TA (6/56) \\
+ZIMNY & 33 & 59 & 55,9\% & MAMA (6/59) \\
+IŚĆ & 36 & 59 & 61,0\% & PÓJŚĆ (7/59) \\
+JUŻ & 12 & 19 & 63,2\% & KUPIĆ (5/19) \\
+RODZEŃSTWO & 25 & 39 & 64,1\% & BRAT (13/39) \\
+JEŚĆ & 22 & 34 & 64,7\% & JEDZENIE (8/34) \\
+POMYSŁ & 2 & 3 & 66,7\% & RANO (1/3) \\
+URODZINY & 2 & 3 & 66,7\% & CHCIEĆ (1/3) \\
+CO & 13 & 19 & 68,4\% & PARA (2/19) \\
+SAMOCHÓD & 42 & 58 & 72,4\% & DZISIAJ (7/58) \\
+ILE & 28 & 38 & 73,7\% & GDZIE (3/38) \\
+KIEDY & 14 & 19 & 73,7\% & CO (1/19) \\
+BYĆ & 30 & 40 & 75,0\% & CO (2/40) \\
+WODA & 3 & 4 & 75,0\% & MAMA (1/4) \\
+PRZEPRASZAM & 3 & 4 & 75,0\% & ZE-MNĄ (1/4) \\
+GDZIE & 43 & 56 & 76,8\% & CHCIEĆ (5/56) \\
+PRZED & 17 & 22 & 77,3\% & TO (1/22) \\
+KAWA & 42 & 54 & 77,8\% & PRACA (10/54) \\
+KLUCZ & 14 & 18 & 77,8\% & TY (2/18) \\
+KOT & 35 & 44 & 79,5\% & DOBRY (2/44) \\
+SPAĆ & 43 & 54 & 79,6\% & RANO (9/54) \\
+HERBATA & 46 & 56 & 82,1\% & PONIEDZIAłEK (2/56) \\
+KTO & 29 & 35 & 82,9\% & KIEDY (2/35) \\
+CZAS & 30 & 36 & 83,3\% & DUŻY (3/36) \\
+WTOREK & 15 & 18 & 83,3\% & BARDZO (1/18) \\
+MAŁY & 15 & 18 & 83,3\% & PRZED (1/18) \\
+MĘŻCZYZNA & 59 & 70 & 84,3\% & TY (4/70) \\
+PIES & 59 & 70 & 84,3\% & MIEĆ (4/70) \\
+DOBRY & 49 & 58 & 84,5\% & TWÓJ (5/58) \\
+PIĆ & 49 & 58 & 84,5\% & DZIEŃ (2/58) \\
+JAK & 33 & 39 & 84,6\% & MÓWIĆ (3/39) \\
+PRACA & 84 & 99 & 84,8\% & PRACOWAĆ (12/99) \\
+SMUTNY & 17 & 20 & 85,0\% & LUBIĆ (1/20) \\
+WESOŁY & 18 & 21 & 85,7\% & NIE-CHCIEĆ (1/21) \\
+MAMA & 6 & 7 & 85,7\% & ZIMNY (1/7) \\
+PRZYJACIEL & 18 & 21 & 85,7\% & KOLEGA (2/21) \\
+BABCIA & 31 & 36 & 86,1\% & STARY (2/36) \\
+MÓWIĆ & 32 & 37 & 86,5\% & GORĄCY (2/37) \\
+LUBIĆ & 13 & 15 & 86,7\% & NIE-LUBIĆ (1/15) \\
+NOWY & 101 & 116 & 87,1\% & DZIĘKOWAĆ (2/116) \\
+ZDROWY & 34 & 39 & 87,2\% & URODZINY (2/39) \\
+JUTRO & 63 & 72 & 87,5\% & WCZORAJ (6/72) \\
+MIEĆ & 59 & 67 & 88,1\% & TWÓJ (2/67) \\
+TELEFON & 37 & 42 & 88,1\% & WCZORAJ (2/42) \\
+KOBIETA & 46 & 52 & 88,5\% & DOBRY (4/52) \\
+WCZORAJ & 85 & 96 & 88,5\% & JUTRO (4/96) \\
+NOC & 32 & 36 & 88,9\% & WIECZÓR (3/36) \\
+TWÓJ & 25 & 28 & 89,3\% & DOBRY (2/28) \\
+PONIEDZIAłEK & 17 & 19 & 89,5\% & SPAĆ (2/19) \\
+DZISIAJ & 123 & 137 & 89,8\% & SAMOCHÓD (6/137) \\
+STARY & 80 & 89 & 89,9\% & BABCIA (5/89) \\
+SZKOłA & 38 & 42 & 90,5\% & WIEDZIEĆ (1/42) \\
+KOLEGA & 48 & 53 & 90,6\% & PRZYJACIEL (2/53) \\
+MUSIEĆ & 31 & 34 & 91,2\% & KLUCZ (1/34) \\
+CZEKAĆ & 21 & 23 & 91,3\% & CO-ROBIĆ (1/23) \\
+RANO & 54 & 59 & 91,5\% & KOT (1/59) \\
+MY & 33 & 36 & 91,7\% & DLA-NAS (3/36) \\
+MIGAĆ & 67 & 73 & 91,8\% & DOM (3/73) \\
+KUPIĆ & 70 & 76 & 92,1\% & JUŻ (3/76) \\
+ZMĘCZONY & 35 & 38 & 92,1\% & ZDROWY (1/38) \\
+TY & 145 & 156 & 92,9\% & ON (3/156) \\
+CHCIEĆ & 67 & 72 & 93,1\% & URODZINY (3/72) \\
+BARDZO & 127 & 136 & 93,4\% & CO-ROBIĆ (1/136) \\
+MÓJ & 101 & 108 & 93,5\% & MĘŻCZYZNA (4/108) \\
+KOCHAĆ & 16 & 17 & 94,1\% & NOWY (1/17) \\
+DZIADEK & 34 & 36 & 94,4\% & KOBIETA (1/36) \\
+TATA & 35 & 37 & 94,6\% & PIĆ (1/37) \\
+KSIĄŻKA & 18 & 19 & 94,7\% & DLA (1/19) \\
+DUŻY & 74 & 78 & 94,9\% & SAMOCHÓD (2/78) \\
+DOM & 75 & 79 & 94,9\% & DUŻY (2/79) \\
+WAŻNY & 19 & 20 & 95,0\% & WIEDZIEĆ (1/20) \\
+DZIEŃ & 38 & 40 & 95,0\% & blank (1/40) \\
+CHORY & 21 & 22 & 95,5\% & KTÓRY (1/22) \\
+JA & 253 & 264 & 95,8\% & SMUTNY (4/264) \\
+DLACZEGO & 54 & 56 & 96,4\% & KUPIĆ (1/56) \\
+UCZYĆ-SIĘ & 39 & 40 & 97,5\% & NOC (1/40) \\
+PIENIĄDZ & 39 & 40 & 97,5\% & MAŁY (1/40) \\
+ZAWSZE & 46 & 47 & 97,9\% & JAK (1/47) \\
+blank & 4988 & 4993 & 99,9\% & SIOSTRA (1/4993) \\
+MYŚLEĆ & 5 & 5 & 100,0\% & -- \\
+BRAT & 18 & 18 & 100,0\% & -- \\
+WIEDZIEĆ & 23 & 23 & 100,0\% & -- \\
+CZĘSTO & 2 & 2 & 100,0\% & -- \\
+DLA-CIEBIE & 1 & 1 & 100,0\% & -- \\
+DLA-MNIE & 2 & 2 & 100,0\% & -- \\
+NIE-CHCIEĆ & 38 & 38 & 100,0\% & -- \\
+GORĄCY & 3 & 3 & 100,0\% & -- \\
+RAZEM & 1 & 1 & 100,0\% & -- \\
+MI & 1 & 1 & 100,0\% & -- \\
+ROK & 16 & 16 & 100,0\% & -- \\
+\end{tabular}
+\caption{Wyniki klasyfikacji izolowanych glossów PJM}
+\label{tab:islr_results}
 \end{table}
 
-[SKOMENTOWAĆ WYNIKI]
+Top-1 accuracy: 3579/4240 = 84,41\%
+Macro recall:  105 klas = 77,56\%
+
+Ze względu na niedostosowanie zbioru danych do zadania CSLR, zdecydowano się podzielić go na pojedyncze glosy, co umożliwiło trenowanie modelu ISLR. W ten sposób podzielono około 3500 nagrań.
+Wprowadzono dodatkowo glos „BLANK", wykorzystywany do wykrywania pozycji neutralnej. Poprawiło to wyniki modelu, a w praktycznym zastosowaniu skuteczniej zapobiega błędnej klasyfikacji w sytuacji, gdy osoba migająca nie wykonuje żadnego znaku, w porównaniu do samego zastosowania statycznego progu odcięcia(\textit{threshold}) podczas inferencji.
+W przypadku ISLR zbiór danych podzielono na dwie części: uczącą i testową, przy czym zadbano o to, aby znaki obecne w zbiorze testowym nie występowały w tym samym kontekście zdaniowym co w zbiorze uczącym. 
+Oznacza to, że model musiał nauczyć się rozpoznawać pojedyncze glosy niezależnie od kontekstu zdaniowego.
 
 Ponieważ klasyczne modele ISLR są silnie wrażliwe na szum przejściowy (chaotyczny ruch rąk użytkownika pomiędzy właściwymi znakami), zastosowano alternatywne podejście do analizy prawdopodobieństw z warstwy Softmax. Zamiast wybierać wyłącznie najbardziej prawdopodobną klasę dla danego okna, system ekstrahuje trzy najlepsze predykcje i wykorzystuje technikę czasowego uczenia zespołowego (\textit{ang. Temporal Ensembling}~\cite{temporal-ensembling} / \textit{Soft Voting}~\cite{soft-voting}). 
 
