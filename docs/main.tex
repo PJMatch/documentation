@@ -102,6 +102,9 @@ Całość została zaprojektowana w sposób modułowy, dzięki czemu możliwe je
 
 \subsection{Dataset}
 \subsection{Text-to-PJM}
+\begin{center}
+    \textbf{Animacje}
+\end{center}
 \begin{itemize}
     \item Niedokładność animacji generowanych z pluginu OpenMocap
     \item Niekompatybilność szkieletów blendera i Unreal Engine 5 (błędy retargetowania animacji)
@@ -109,21 +112,40 @@ Całość została zaprojektowana w sposób modułowy, dzięki czemu możliwe je
     \item Problemy z płynnością przejść animacji
     \item Ucinanie końców animacji przez łączenie animacji
     \item Powrót awatara do pozycji neutralnej po zakończeniu każdej z animacji (przy małym czasie przejścia)
-    
+\end{itemize}
+W celu rozwiązania problemów związanych z animacjami zrezygnowano z wykorzystania OpenMocap jako głównego źródła nagrywania i przeniesiono proces nagrywania animacji do Laboratorium Zanurzonej Wizualizacji Przestrzennej. Dodatkowo dobrano odpowiednie parametry mieszania animacji oraz mechanizmu Inertialization w UE5, co pozwoliło uzyskać płynniejsze przejścia pomiędzy poszczególnymi animacjami.
+\begin{center}
+    \textbf{Silnik Unreal Engine 5}
+\end{center}
+\begin{itemize}
     \item Problemy z awatarem MetaHuman 
     \item Częste awarie Unreal Engine 5
     \item Problemy z importem animacji do Unreal Engine 5 (brakujące kości, niekompatybilne szkieletu)
-    
+\end{itemize}
+Problemy związane z importem animacji zostały w dużej mierze wyeliminowane dzięki zmianie sposobu pozyskiwania animacji i bezpośredniemu wykorzystaniu nagrań z laboratorium LZWP. Część problemów związanych ze stabilnością silnika UE5 nadal występuje i wynika najprawdopodobniej z ograniczeń środowiska.
+\begin{center}
+    \textbf{Laboratorium}
+\end{center}
+\begin{itemize}
     \item Niedokładność śledzenia ruchu palców w systemie finger tracking
     \item Poruszanie sie awatara poprzez błędy w systemie śledzenia ruchu palców (inverse kinematics w Unreal Engine 5 nie działało najlepiej we współpracy z ruchem dłoni)
     \item Potrzeby poprawiania animacji przez niedokładności
-
+\end{itemize}
+W celu poprawy jakości animacji ustabilizowano szkielet, co pozwoliło ograniczyć niepożądane ruchy awatara w osi góra-dół. Dodatkowo przeprowadzono ręczne poprawki i dostrajanie animacji w celu uzyskania bardziej naturalnych ruchów dłoni i całego ciała.
+\begin{center}
+    \textbf{Organizacja plików}
+\end{center}
+\begin{itemize}
     \item Zbyt duże pliki z projektu nie dające się przesyłać na repozytorium
-
+\end{itemize}
+Problemy związane z rozmiarem projektu nie zostały wyeliminowane ze względu na ograniczenia platformy GitHub dotyczące wielkości przesyłanych plików. W związku z tym część dużych zasobów była przechowywana lokalnie przez każdego członka zespołu.
+\begin{center}
+    \textbf{Backend}
+\end{center}
+\begin{itemize}
     \item Problemy z lematyzacją i transformacją składniową tekstu wejściowego
     \item Trudności z obsługą zdań złożonych i podziałem tekstu na klauzule
     \item Halucynacje modelu spacy\_stanza
-
 \end{itemize}
 \subsection{PJM-to-text}
 
