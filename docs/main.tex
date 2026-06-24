@@ -49,11 +49,13 @@
     \item Trzęsienie się telefonu na statywie po każdym dotknięciu ekranu.
     \item Słaby internet w miejscach nagrywania, powodujący, że nagrania bardzo długo się wysyłały, co blokowało pracę.
     \item Konieczność przyspieszenia i uproszczenia całego procesu nagrywania.
+    \item Stworzenie 500 zdań do datasetu z różnicowanym kontekstem składających się z 100 glossów.
+    \item Kontrolowanie ilości zdań nagrywane przez wolontariuszy.
 \end{itemize}
 
 \section{Stack technologiczny}
 \begin{itemize}
-    \item \textbf{Dataset:} Python, Pandas, imageio-ffmpeg, React Native (Expo).
+    \item \textbf{Dataset:} Python, Pandas, imageio-ffmpeg, React Native (Expo), Stanza.
 \end{itemize}
 
 \subsection{Licencje wykorzystanych narzędzi}
@@ -62,6 +64,7 @@
     \item \textbf{Pandas:} Licencja BSD (3-Clause License) - licencja open-source, zezwalająca na dowolne prywatne i komercyjne modyfikowanie kodu źródłowego pod warunkiem zachowania informacji o prawach autorskich. Możemy użyć, ponieważ: na publicznym GitHubie udostępniamy jedynie nasz autorski skrypt, a nie pliki źródłowe samej biblioteki. Każdy, kto pobierze projekt, musi zainstalować Pandas samodzielnie, a instalator automatycznie dołącza wymagany plik licencyjny.
     \item \textbf{imageio-ffmpeg:} Licencja MIT. - w pełni otwarta i darmowa licencja open-source, dająca użytkownikom nieograniczone prawo do używania, kopiowania i modyfikowania oprogramowania.
     \item \textbf{React Native (Expo):} Licencja MIT
+    \item \textbf{Stanza:} Licencja Apache v2.0
 \end{itemize}
 \section{Opis rozwiązań}
 
@@ -72,6 +75,9 @@
     \item \textbf{Kolejka nagrań w tle:} Wdrożenie systemu kolejkowania wysyłania plików. Dzięki temu wolny internet stał się mniejszym problemem ponieważ można nagrywać kolejne zdania, podczas gdy poprzednie wysyłają się w tle.
     \item \textbf{Automatyzacja procesu:} Dodanie funkcji automatycznego przełączania na kolejne zdanie po zakończeniu nagrania. Po ustawieniu w telefonie odpowiedniej osoby i pierwszego nagrywanego zdania użytkownik używa tylko pilota do nagrywania, bez konieczności wpisywania czegokolwiek w aplikacji.
     \item \textbf{Walidator:} Stworzenie skryptów serwerowych, które dbają o porządek w bazie (czyszczenie dubli, usuwanie ścieżek audio, weryfikacja plików \texttt{.json} z Excelem).
+    \item \textbf{Skrypt statystyczny:} Stworzenie skryptu do tworzenia statystyk występowania glossów w zdaniach z datasetu wraz z kontekstami występowania w zdaniach.
+    \item \textbf{Skrypt filtrowania zdań:} Stworzenie skryptu odsiewających zdania, które posiadają znaki spoza N najcześciej występujących znaków w datasetcie.
+    \item \textbf{Aplikacja do śledzenia ilości zdań:} Stworzenie aplikacji, która pokazuje ile zdań zostało nagrane i jakie osoby nagrały konkretne zdanie.
 \end{itemize}
 
 \subsection{Text-to-PJM}
@@ -86,6 +92,10 @@
     \item Drgania obrazu niszczące jakość datasetu,
     \item Przestoje w nagrywaniu wywołane słabym połączeniem sieciowym i oczekiwaniem na wysłanie pliku.
     \item Zbyt długi przerwy między nagraniami wywołane wprowadzaniem danych takich jak numer aktualnego nagrania w aplikacji.
+    \item Długi czas oczekiwania na tłumaczenia spowodowanym brakiem czasu wolontariusza.
+    \item Problem interpersonalny miedzy wolontariuszami.
+    \item Problem komunikacyjny miedzy zespołami social team a dataset team, czyli przyjście na nagrywki, które sie nie miały odbyć.
+    \item Niektórzy wolontariusze sie nie zjawali lub odwoływali nagrywki.
 \end{itemize}
 
 \subsection{Text-to-PJM}
