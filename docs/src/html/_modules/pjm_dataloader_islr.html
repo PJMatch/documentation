@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pjm_dataloader_islr &mdash; pjm-to-text 20.06.2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=705bd0e0"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            pjm-to-text
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pjm-to-text</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pjm_dataloader_islr</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pjm_dataloader_islr</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Data loading and preprocessing utilities for Isolated Sign Language Recognition (ISLR).</span>
+
+<span class="sd">This module is responsible for loading `.npy` arrays containing raw MediaPipe skeleton landmarks,</span>
+<span class="sd">filtering out irrelevant vertices, and converting them into uniform tensors of shape [T, V, C].</span>
+<span class="sd">It also provides tools for dynamic vocabulary building based on segmented gloss annotations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataset_preprocess</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BLANK_GLOSS</span><span class="p">,</span>
+    <span class="n">END_OF_VIDEO</span><span class="p">,</span>
+    <span class="n">build_samples</span><span class="p">,</span>
+    <span class="n">load_gloss_map</span><span class="p">,</span>
+    <span class="n">map_gloss</span><span class="p">,</span>
+    <span class="n">unique_stems</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.utils.rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">pad_sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="n">POSE_LEN</span> <span class="o">=</span> <span class="mi">33</span>
+<span class="n">FACE_LEN</span> <span class="o">=</span> <span class="mi">478</span>
+<span class="n">LH_LEN</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="n">RH_LEN</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="n">TOTAL_V</span> <span class="o">=</span> <span class="n">POSE_LEN</span> <span class="o">+</span> <span class="n">FACE_LEN</span> <span class="o">+</span> <span class="n">LH_LEN</span> <span class="o">+</span> <span class="n">RH_LEN</span>
+<span class="n">LH_START</span> <span class="o">=</span> <span class="n">POSE_LEN</span> <span class="o">+</span> <span class="n">FACE_LEN</span>
+<span class="n">RH_START</span> <span class="o">=</span> <span class="n">POSE_LEN</span> <span class="o">+</span> <span class="n">FACE_LEN</span> <span class="o">+</span> <span class="n">LH_LEN</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_safe_part</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">expected_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pads or cuts the landmark array to ensure it always has the exact expected length.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        raw (list | np.ndarray): Raw landmark coordinates.</span>
+<span class="sd">        expected_len (int): The required number of landmarks for this body part.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: A padded or truncated numpy array of shape (expected_len, 4).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">expected_len</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">expected_len</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">expected_len</span> <span class="o">-</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">arr</span><span class="p">[:</span><span class="n">expected_len</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_convert_frame</span><span class="p">(</span><span class="n">frame_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Combines pose, face, and hand landmarks from a single frame into one array (X, Y, confidence).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        frame_dict (dict): Dictionary containing raw MediaPipe coordinates for the frame.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: A concatenated array containing [X, Y, Confidence] for all chosen landmarks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pose</span> <span class="o">=</span> <span class="n">_safe_part</span><span class="p">(</span><span class="n">frame_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pose&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">POSE_LEN</span><span class="p">)</span>
+    <span class="n">face</span> <span class="o">=</span> <span class="n">_safe_part</span><span class="p">(</span><span class="n">frame_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;face&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">FACE_LEN</span><span class="p">)</span>
+    <span class="n">lh</span> <span class="o">=</span> <span class="n">_safe_part</span><span class="p">(</span><span class="n">frame_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lh&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">LH_LEN</span><span class="p">)</span>
+    <span class="n">rh</span> <span class="o">=</span> <span class="n">_safe_part</span><span class="p">(</span><span class="n">frame_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rh&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">RH_LEN</span><span class="p">)</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">pose</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">lh</span><span class="p">,</span> <span class="n">rh</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">combined</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+
+
+<div class="viewcode-block" id="mirror_clip">
+<a class="viewcode-back" href="../index.html#pjm_dataloader_islr.mirror_clip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mirror_clip</span><span class="p">(</span><span class="n">clip</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Flips the skeleton horizontally to simulate left/right hand swapping for data augmentation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clip (torch.Tensor): A tensor representing a sequence of frames, shape [Time, Vertices, Channels].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        torch.Tensor: The augmented (mirrored) sequence tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flipped</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">flipped</span><span class="p">[:,</span> <span class="n">LH_START</span><span class="p">:</span><span class="n">RH_START</span><span class="p">],</span> <span class="n">flipped</span><span class="p">[:,</span> <span class="n">RH_START</span><span class="p">:</span><span class="n">RH_START</span> <span class="o">+</span> <span class="n">RH_LEN</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">clip</span><span class="p">[:,</span> <span class="n">RH_START</span><span class="p">:</span><span class="n">RH_START</span> <span class="o">+</span> <span class="n">RH_LEN</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">(),</span>
+        <span class="n">clip</span><span class="p">[:,</span> <span class="n">LH_START</span><span class="p">:</span><span class="n">RH_START</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">(),</span>
+    <span class="p">)</span>
+    <span class="n">flipped</span><span class="p">[:,</span> <span class="p">:</span><span class="n">POSE_LEN</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">flipped</span><span class="p">[:,</span> <span class="p">:</span><span class="n">POSE_LEN</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">flipped</span><span class="p">[:,</span> <span class="n">LH_START</span><span class="p">:</span><span class="n">RH_START</span> <span class="o">+</span> <span class="n">RH_LEN</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">flipped</span><span class="p">[:,</span> <span class="n">LH_START</span><span class="p">:</span><span class="n">RH_START</span> <span class="o">+</span> <span class="n">RH_LEN</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">flipped</span></div>
+
+
+
+<div class="viewcode-block" id="temporal_scale_clip">
+<a class="viewcode-back" href="../index.html#pjm_dataloader_islr.temporal_scale_clip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">temporal_scale_clip</span><span class="p">(</span><span class="n">clip</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">scale_range</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span> <span class="n">min_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Speeds up or slows down the video clip to make the model robust to different signing speeds.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clip (torch.Tensor): A tensor representing a sequence of frames, shape [Time, Vertices, Channels].</span>
+<span class="sd">        scale_range (tuple[float, float]): Min and max scaling factor. Defaults to (0.8, 1.2).</span>
+<span class="sd">        min_frames (int): Minimum length to maintain after scaling. Defaults to 4.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        torch.Tensor: The temporally stretched or compressed sequence tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="n">scale_range</span><span class="p">)</span>
+    <span class="n">new_T</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)),</span> <span class="n">min_frames</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">new_T</span> <span class="o">==</span> <span class="n">T</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">clip</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">V</span> <span class="o">*</span> <span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">new_T</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">new_T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_gloss_vocab">
+<a class="viewcode-back" href="../index.html#pjm_dataloader_islr.build_gloss_vocab">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_gloss_vocab</span><span class="p">(</span><span class="n">annotation_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">split_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">gloss_map_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">include_blank</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads annotation files and creates a dictionary mapping each unique sign to an integer ID.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annotation_dir (str): Path to the directory with annotation data.</span>
+<span class="sd">        split_files (list[str]): List of paths defining the dataset splits.</span>
+<span class="sd">        gloss_map_path (str, optional): Path to a custom mapping rules file. Defaults to None.</span>
+<span class="sd">        include_blank (bool): Whether to reserve index 0 for the CTC blank token. Defaults to True.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict[str, int]: A dictionary mapping gloss string identifiers to their numeric IDs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">glosses</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">gloss_map</span> <span class="o">=</span> <span class="n">load_gloss_map</span><span class="p">(</span><span class="n">gloss_map_path</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">split_file</span> <span class="ow">in</span> <span class="n">split_files</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">split_file</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">gloss_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">glosses</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">map_gloss</span><span class="p">(</span><span class="n">gloss_name</span><span class="p">,</span> <span class="n">gloss_map</span><span class="p">))</span>
+
+    <span class="n">gloss2id</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">include_blank</span><span class="p">:</span>
+        <span class="n">gloss2id</span><span class="p">[</span><span class="n">BLANK_GLOSS</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gloss2id</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">glosses</span><span class="p">),</span> <span class="n">start</span><span class="o">=</span><span class="n">start_idx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">g</span> <span class="o">==</span> <span class="n">BLANK_GLOSS</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">gloss2id</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+    <span class="k">return</span> <span class="n">gloss2id</span></div>
+
+
+
+<div class="viewcode-block" id="PJMDataset">
+<a class="viewcode-back" href="../index.html#pjm_dataloader_islr.PJMDataset">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PJMDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PyTorch Dataset implementation for short, isolated sign clips.</span>
+<span class="sd">    </span>
+<span class="sd">    Data Processing Pipeline:</span>
+<span class="sd">    1. Reads start/end frame indices from annotation files for a specific gloss.</span>
+<span class="sd">    2. Loads the corresponding `.npy` skeleton sequence from disk (or RAM cache).</span>
+<span class="sd">    3. Normalizes 543 MediaPipe landmarks down to a specific subset (Body, Face, Hands).</span>
+<span class="sd">    4. Applies stochastic augmentations during training (Temporal Scaling, Horizontal Mirroring).</span>
+<span class="sd">    5. Returns a padded tensor representation ready for the ST-GCN network.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">annotation_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">split_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">gloss2id</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">gloss_map_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">add_blank_segments</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cache_videos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">warmup_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">mirror_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">temporal_scale</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">temporal_scale_range</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the dataset and loads video paths and annotations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data_dir (str): Path to directory with .npy sequences.</span>
+<span class="sd">            annotation_dir (str): Path to directory with annotation files.</span>
+<span class="sd">            split_file (str): Path to the list of dataset items.</span>
+<span class="sd">            gloss2id (dict[str, int]): Dictionary mapping strings to class IDs.</span>
+<span class="sd">            gloss_map_path (str, optional): Custom mapping rules. Defaults to None.</span>
+<span class="sd">            add_blank_segments (bool): Include unlabeled sections as `&lt;blank&gt;`. Defaults to True.</span>
+<span class="sd">            cache_videos (bool): Preload files into memory for speed. Defaults to True.</span>
+<span class="sd">            warmup_cache (bool): Pre-fill cache upon initialization. Defaults to False.</span>
+<span class="sd">            mirror_prob (float): Probability of horizontal flip. Defaults to 0.0.</span>
+<span class="sd">            temporal_scale (bool): Apply temporal augmentation. Defaults to False.</span>
+<span class="sd">            temporal_scale_range (tuple[float, float]): Range of scale multipliers. Defaults to (0.8, 1.2).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mirror_prob</span> <span class="o">=</span> <span class="n">mirror_prob</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temporal_scale</span> <span class="o">=</span> <span class="n">temporal_scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temporal_scale_range</span> <span class="o">=</span> <span class="n">temporal_scale_range</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_cache</span> <span class="o">=</span> <span class="n">build_samples</span><span class="p">(</span>
+            <span class="n">data_dir</span><span class="o">=</span><span class="n">data_dir</span><span class="p">,</span>
+            <span class="n">annotation_dir</span><span class="o">=</span><span class="n">annotation_dir</span><span class="p">,</span>
+            <span class="n">split_file</span><span class="o">=</span><span class="n">split_file</span><span class="p">,</span>
+            <span class="n">gloss2id</span><span class="o">=</span><span class="n">gloss2id</span><span class="p">,</span>
+            <span class="n">gloss_map_path</span><span class="o">=</span><span class="n">gloss_map_path</span><span class="p">,</span>
+            <span class="n">add_blank_segments</span><span class="o">=</span><span class="n">add_blank_segments</span><span class="p">,</span>
+            <span class="n">cache_videos</span><span class="o">=</span><span class="n">cache_videos</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_cache</span><span class="o">.</span><span class="n">data_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blank_id</span> <span class="o">=</span> <span class="n">gloss2id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">BLANK_GLOSS</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">warmup_cache</span> <span class="ow">and</span> <span class="n">cache_videos</span><span class="p">:</span>
+            <span class="n">stems</span> <span class="o">=</span> <span class="n">unique_stems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  warming cache for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">stems</span><span class="p">)</span><span class="si">}</span><span class="s2"> unique videos...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">video_cache</span><span class="o">.</span><span class="n">warmup</span><span class="p">(</span><span class="n">stems</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_raw_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_cache</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stem</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a single video clip and its label, applying augmentations if enabled.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idx (int): The index of the item to retrieve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[torch.Tensor, int, int]: A tuple containing:</span>
+<span class="sd">                - The processed clip tensor of shape [Time, Vertices, Channels].</span>
+<span class="sd">                - The integer ID of the target gloss.</span>
+<span class="sd">                - The unpadded sequence length.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stem</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">gloss_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_raw_video</span><span class="p">(</span><span class="n">stem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No video file found for stem &#39;</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">&#39; in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">==</span> <span class="n">END_OF_VIDEO</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">_convert_frame</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]])</span>
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_scale</span> <span class="ow">and</span> <span class="n">gloss_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">blank_id</span><span class="p">:</span>
+            <span class="n">clip</span> <span class="o">=</span> <span class="n">temporal_scale_clip</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_scale_range</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gloss_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">blank_id</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mirror_prob</span><span class="p">:</span>
+            <span class="n">clip</span> <span class="o">=</span> <span class="n">mirror_clip</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">clip</span><span class="p">,</span> <span class="n">gloss_id</span><span class="p">,</span> <span class="n">clip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="collate_fn">
+<a class="viewcode-back" href="../index.html#pjm_dataloader_islr.collate_fn">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">collate_fn</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pads clips of different lengths with zeros so they can be grouped into a single batch.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        batch (list[tuple]): A list of tuples containing (clip_tensor, gloss_id, length) for each sample.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple[torch.Tensor, torch.Tensor, torch.Tensor]: A tuple containing:</span>
+<span class="sd">            - Padded clip sequences of shape [Batch, MaxTime, Vertices, Channels].</span>
+<span class="sd">            - Target labels tensor of shape [Batch].</span>
+<span class="sd">            - Sequence lengths tensor of shape [Batch].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clips</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
+
+    <span class="n">padded</span> <span class="o">=</span> <span class="n">pad_sequence</span><span class="p">(</span><span class="n">clips</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">padded</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">lengths</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, some text.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

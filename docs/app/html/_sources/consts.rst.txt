@@ -1,0 +1,7 @@
+consts
+======
+
+.. automodule:: consts
+   :members:
+   :show-inheritance:
+   :undoc-members:
