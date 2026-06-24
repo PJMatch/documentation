@@ -152,6 +152,42 @@ GlossTracker w trybie ISLR sumuje ułamkowe pewności (prawdopodobieństwa) dla 
 
 Podejście to skutecznie rozwiązuje problem szybkich znaków (np. krótkich zaimków takich jak "JA" czy "TY"), które trwają zbyt krótko, aby w pojedynczej klatce osiągnąć rygorystyczny próg pewności wymagany w podejściu \textit{hard voting}. Ostateczna predykcja trafia do bufora potwierdzającego. Moduł ten eliminuje problem migotania interfejsu graficznego, wymagając stabilności decyzji sieci przez określoną liczbę iteracji przed zaprezentowaniem wyniku użytkownikowi. Ponadto system automatycznie czyści interfejs po zakończeniu ruchu (detekcja i zatwierdzenie klasy \textit{blank}).
 
+\subsubsection{Korekta zdań z wykorzystaniem LLM}
+
+Zarówno potok CSLR, jak i ISLR zwracają wynik w postaci surowej sekwencji glosów czyli nieodmienionych form podstawowych poszczególnych znaków (np. \texttt{MAMA KUPIĆ CHLEB}). Sekwencje takie nie stanowią poprawnych zdań w języku polskim, ponieważ pozbawione są, właściwego szyku. W celu zaprezentowania użytkownikowi naturalnego tłumaczenia, na końcu potoku przetwarzania umieszczono dodatkowy moduł korekty, oparty na dużym modelu językowym Bielik, uruchamianym lokalnie za pośrednictwem serwera Ollama.
+
+Wybór rozwiązania działającego lokalnie zamiast komercyjnego API w chmurze, podyktowany był wymogiem ochrony prywatności oraz brakiem zależności od połączenia sieciowego i kosztów zapytań. Model Bielik wybrano ze względu na jego specjalizację w języku polskim, co jest kluczowe dla poprawnej odmiany fleksyjnej generowanych zdań.
+
+\paragraph{Architektura komunikacji.}
+Moduł LLM zaimplementowano jako osobny wątek roboczy (klasa \texttt{BielikWorker}, dziedzicząca po \texttt{QThread}). Wydzielenie zapytań sieciowych do oddzielnego wątku zapobiega blokowaniu interfejsu graficznego oraz głównej pętli inferencji w czasie oczekiwania na odpowiedź modelu. Przepływ danych zrealizowano w oparciu o mechanizm sygnałów i slotów biblioteki Qt: moduł rozpoznający znaki (\texttt{AIWorker}) po zatwierdzeniu każdego glosu emituje sygnał \texttt{prediction\_ready}, który trafia do bufora modelu LLM. Gotowe, przetłumaczone zdanie jest następnie zwracane sygnałem \texttt{word\_received} i prezentowane w interfejsie użytkownika.
+
+\paragraph{Mechanizm buforowania i wyzwalania.}
+Aby uniknąć wysyłania zapytania po każdym pojedynczym znaku, zastosowano mechanizm buforowania z opóźnieniem (\textit{ang. debounce}). Rozpoznane glosy gromadzone są w buforze (z pominięciem wartości pustych oraz klasy \texttt{blank}), a każdorazowo odświeżany jest znacznik czasu ostatniego znaku. Wątek roboczy cyklicznie sprawdza stan bufora i wyzwala zapytanie dopiero wtedy, gdy od momentu zarejestrowania ostatniego glosu upłynął zdefiniowany czas bezczynności (3~sekundy). Stan taki interpretowany jest jako zakończenie miganego zdania przez użytkownika. Zgromadzone glosy są wówczas scalane w jeden ciąg, bufor jest czyszczony, a do serwera Ollama wysyłane jest pojedyncze żądanie HTTP.
+
+\paragraph{Format zapytania.}
+Komunikacja odbywa się poprzez żądanie typu \texttt{POST} kierowane do lokalnego punktu końcowego API Ollama (\texttt{http://localhost:11434/api/generate}). Ładunek żądania (\textit) w formacie JSON zawiera nazwę modelu (\texttt{"bielik"}), flagę \texttt{stream} ustawioną na \texttt{false} (odpowiedź zwracana jest w całości, a nie strumieniowo) oraz polecenie czyil prompt. Polecenie zaprojektowano w taki sposób, aby ograniczyć halucynacje modelu i wymusić wierność tłumaczenia względem wejściowych glosów. Zdefiniowano w nim następujące rygorystyczne zasady:
+\begin{itemize}
+    \item zakaz dodawania słów, których nie ma w glosach wejściowych;
+    \item ignorowanie bezpośrednich powtórzeń (np. \texttt{MAMA MAMA KUPIĆ} traktowane jak \texttt{MAMA KUPIĆ});
+    \item zwrócenie wyłącznie przetłumaczonego zdania, bez komentarzy, wstępów czy cudzysłowów;
+    \item stosowanie poprawnej odmiany przez przypadki oraz odpowiednich czasów gramatycznych.
+\end{itemize}
+Odpowiedź modelu (pole \texttt{response} w zwróconym obiekcie JSON) jest odczytywana, oczyszczana z białych znaków i przekazywana do warstwy prezentacji. Ewentualne błędy komunikacji (np. niedziałający serwer Ollama) są przechwytywane i raportowane bez przerywania działania aplikacji.
+
+\paragraph{Wdrożenie modelu.}
+Model dystrybuowany jest w postaci pliku w formacie GGUF (np. \texttt{Bielik-Minitron-7B-v3.0-Instruct-Q4\_K\_M.gguf}). W celu udostępnienia go przez serwer Ollama definiuje się plik konfiguracyjny \texttt{Modelfile}, wskazujący na lokalny plik z wagami, a następnie rejestruje model pod nazwą \texttt{bielik} (wymaganą przez kod aplikacji). Procedurę przedstawiono poniżej.
+
+\begin{lstlisting}[language=bash, caption={Rejestracja i uruchomienie modelu Bielik w serwerze Ollama.}, label={lst:ollama_setup}]
+# Zawartosc pliku Modelfile (umieszczonego w katalogu z plikiem .gguf):
+#   FROM ./Bielik-Minitron-7B-v3.0-Instruct-Q4_K_M.gguf
+
+# Rejestracja modelu pod nazwa "bielik":
+ollama create bielik -f Modelfile
+
+# Uruchomienie serwera modelu (pozostaje aktywny w tle):
+ollama run bielik
+\end{lstlisting}
+
 \section{Opis problemów w trakcie realizacji projektu}
 
 \subsection{Dataset}
