@@ -1,0 +1,7 @@
+evaluate
+========
+
+.. automodule:: evaluate
+   :members:
+   :show-inheritance:
+   :undoc-members:

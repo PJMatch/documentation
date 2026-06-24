@@ -1,16 +1,23 @@
+% DON'T DELETE THIS LINE:
+% !TEX program = lualatex
+% ------------------------
+
 \documentclass[12pt]{article}
-\usepackage[utf8]{inputenc}
+
+\usepackage{fontspec}
+
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage[margin=1.5cm]{geometry}
-\usepackage[T1]{fontenc}
 \usepackage[polish]{babel}
+\usepackage{csquotes}
+
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amsmath, amssymb, mathtools}
 \usepackage{hyperref}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{subcaption}
-
 \usepackage{listings}
 \usepackage{xcolor}
 
@@ -82,7 +89,183 @@
 
 \subsection{Text-to-PJM}
 
+\section{Stack technologiczny}
+\subsection{Text-to-PJM}
+\begin{itemize}
+    \item Python 3.11
+    \item SpaCy-Stanza
+    \item FastAPI
+    \item Uvicorn
+    \item Unreal Engine 5
+    \item VaRest
+\end{itemize}
+
+\begin{itemize}
+    \item Python
+    \item PyTorch
+\end{itemize}
+
+\section{Opis rozwiązań}
+
+\subsection{Dataset} \label{sec:dataset}
+
+\subsection{Text-to-PJM}
+\subsubsection{Backend}
+
+\begin{center}
+    \textbf{Moduł NLP}
+\end{center}
+Backend modułu Text-to-PJM odpowiada za przetwarzanie tekstu wejściowego w języku polskim na uporządkowaną reprezentację glos, która następnie jest wykorzystywana przez aplikację wizualną do odtworzenia odpowiednich animacji PJM.\\\\
+Pierwszym etapem działania systemu jest analiza tekstu wejściowego. Użytkownik podaje zdanie lub zestaw zdań w języku polskim, które trafiają do modułu odpowiedzialnego za lematyzację oraz uproszczoną transformację składniową. Do analizy językowej wykorzystano bibliotekę \texttt{spacy\_stanza}, która pozwala na przetwarzanie języka polskiego z uwzględnieniem takich informacji jak lemat wyrazu, część mowy, zależności składniowe oraz cechy morfologiczne.\\\\
+Głównym zadaniem modułu lematyzacji jest sprowadzenie odmienionych form wyrazów do ich form podstawowych. Przykładowo słowa takie jak \textit{mam}, \textit{miałem} lub \textit{miała} mogą zostać sprowadzone do lematu \textit{mieć}. Dzięki temu system może łatwiej dopasować słowa z tekstu wejściowego do dostępnych animacji, których nazwy są przechowywane w formie bazowej. Jest to szczególnie istotne w języku polskim, ponieważ jedno słowo może występować w wielu różnych formach gramatycznych.\\\\
+Oprócz samej lematyzacji backend wykonuje dodatkowe operacje przygotowujące tekst do reprezentacji w PJM. System pomija część elementów, które nie są bezpośrednio reprezentowane w docelowym zapisie glosowym, a także zmienia kolejność wyrazów. Moduł został również rozszerzony o obsługę zdań pytających, przeczeń, czasowników posiłkowych, wyrażeń czasowych oraz podział zdań na klauzule.\\\\
+Wygenerowana reprezentacja tekstu uwzględnia formy podstawowe wyrazów, kolejność glos oraz dodatkowe oznaczenia zgodne z przyjętym sposobem prezentowania treści w Polskim Języku Migowym.\\
+
+\begin{center}
+    \textbf{FastAPI}
+\end{center}
+Drugim elementem backendu jest aplikacja API przygotowana z wykorzystaniem frameworka \texttt{FastAPI}. Jej zadaniem jest udostępnienie funkcji przetwarzania tekstu innym częściom systemu, przede wszystkim aplikacji wizualnej stworzonej w Unreal Engine.\\\\
+Aplikacja API udostępnia endpoint, do którego przesyłany jest tekst wpisany przez użytkownika. Po odebraniu żądania backend przekazuje tekst do modułu NLP, a następnie zwraca wynik w formacie JSON. Odpowiedź zawiera listę glosów oraz elementów specjalnych, które mogą zostać wykorzystane przez aplikację wizualną do wyszukania i odtworzenia odpowiednich animacji.\\\\
+Po wygenerowaniu glosów backend sprawdza, czy dla każdego z nich istnieje odpowiadająca animacja. Lista dostępnych animacji jest wczytywana z pliku, w którym zapisano nazwy animacji znajdujących się w projekcie. Jeżeli dana glosa posiada odpowiadającą jej animację, zostaje przekazana do aplikacji wizualnej jako nazwa animacji do odtworzenia. W przypadku braku gotowej animacji system realizuje literowanie danego słowa.\\\\
+FastAPI umożliwia komunikację z aplikacją wizualną przez żądania HTTP. Dzięki temu część odpowiedzialna za przetwarzanie tekstu jest oddzielona od projektu w Unreal Engine i może być rozwijana niezależnie od front-endu.\\
+
+\begin{center}
+    \textbf{Aplikacja wizualna}
+\end{center}
+Główną część aplikacji stanowi środowisko Unreal Engine 5, w którym realizowana jest wizualizacja języka migowego przy użyciu modelu awatara MetaHuman.\\\\
+Na początkowym etapie projektu animacje były przygotowywane z wykorzystaniem programu Blender oraz dodatku OpenMocap. Rozwiązanie to pozwalało na automatyczne generowanie animacji na podstawie nagrań z jednej, bądź dwóch kamer. Niestety jednak występowały w tym rozwiązaniu liczne problemy związane na przykład z kompatybilnością szkieletów lub poprawnym eksportem animacji do formatu FBX. Dodatkowo pojawiały się trudności podczas przenoszenia animacji do środowiska Unreal Engine 5 oraz ich retargetowania na model MetaHuman. Z tego względu zdecydowano się na zmianę sposobu generowania animacji.\\\\
+W dalszej części projektu wykorzystano Laboratorium Zanurzonej Wizualizacji Przestrzennej (LZWP), wyposażone w system śledzenia ruchu dłoni (finger tracking). Pozwoliło to na dokładniejsze odwzorowanie ruchów palców i dłoni, które stanowią kluczowy element języka migowego. Zarejestrowane animacje były bezpośrednio importowane do środowiska Unreal Engine 5 i przypisywane do modelu MetaHuman.\\\\
+Proces działania systemu rozpoczyna się od przekształcenia zdania tekstowego na sekwencję glossów odpowiadających poszczególnym znakom języka migowego. Każdy gloss jest powiązany z odpowiednią animacją przechowywaną w aplikacji.\\\\
+Komunikacja pomiędzy modułem tłumaczenia a aplikacją została zrealizowana z wykorzystaniem biblioteki VaRest oraz frameworka FastAPI. Moduł tłumaczenia zwraca odpowiedź w postaci formatu JSON zawierającego listę nazw animacji odpowiadających poszczególnym znakom.\\\\
+Po stronie Unreal Engine 5 przygotowano strukturę Blueprintów odpowiedzialną za obsługę interfejsu użytkownika, wysyłanie zapytań HTTP oraz odbieranie odpowiedzi z serwera FastAPI. Otrzymane dane są następnie przekazywane do systemu odpowiedzialnego za odtwarzanie animacji.\\\\
+W celu zarządzania sekwencjami znaków zaimplementowano komponent \texttt{PJMPlayer}. Komponent ten odpowiada za tworzenie kolejki animacji, ich sekwencyjne odtwarzanie oraz zarządzanie czasem przejść pomiędzy kolejnymi znakami. Dzięki temu możliwe jest automatyczne prezentowanie całych zdań bez konieczności ręcznego uruchamiania poszczególnych animacji.\\\\
+Do odtwarzania znaków wykorzystano mechanizmy dostępne w Unreal Engine 5, takie jak Animation Montage, Slot Animations oraz Inertialization. Pozwoliło to na uzyskanie bardziej naturalnych i płynnych przejść pomiędzy kolejnymi znakami języka migowego.\\\\
+Całość została zaprojektowana w sposób modułowy, dzięki czemu możliwe jest dalsze rozszerzanie bazy znaków, rozbudowa modułu tłumaczenia oraz implementacja kolejnych funkcjonalności bez konieczności modyfikowania głównej architektury aplikacji.\\
+
 \subsection{PJM-to-text}
+
+\subsubsection{CSLR (Continuous Sign Language Recognition)}
+Projekt przewidywał utworzenie modułu tłumaczenia ciągłego języka migowego. Oznacza to tłumaczenie bez podziału na pojedyncze słowa, z całych sekwencji glosów interpretowanych przez sieć neuronową. Jako architekturę sieci wybrano model CoSign-1s zaproponowany w pracy~\cite{cosign}. Przeprowadzono trening na zgromadzonym zbiorze uczącym (opisanym w sekcji~\ref{sec:dataset}). Odtworzony model porównano z oryginalnymi wynikami z publikacji~\cite{cosign}.
+
+% TUTAJ PORÓWNANIE WYNIKÓW NASZEGO I OG COSIGN NA PHOENIXIE
+% tabela poniezej tylko poglądowa, wazne zeby uzywac tabel z pakietu booktabs
+\begin{table}[H]
+    \centering
+    \caption{Dodać BLUE wyniki}
+    \label{tab:train_res_cosign}
+    \begin{tabular}{llccc}
+        \toprule
+        Typ datasetu& WER \\
+        \midrule
+        Pheonix-14T & 38\% \\
+        PJM signer independant& 12\% \\
+        PJM sentence independant& 55\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{enumerate}
+    \item Pheonix-14T - dataset do CSLR dla języka niemieckiego, zawierający 14 000 nagrań wideo. Zbiór ten jest powszechnie używany jako benchmark w dziedzinie rozpoznawania języka migowego.
+    \item PJM signer independant - w zbiorze Train i test pojawiają się te same zdania ale różni migający
+    \item PJM sentence independant - w zbiorze Train i test pojawiają się różne zdania ale ci sami migający
+\end{enumerate}
+Niskie wyniki modelu na datasecie Pheonix-14T nie są zgodne z wynikami publikacji~\cite{cosign}, co może wynikać z niejednoznacznego opisu implementacji w artykule. W związku z tym nie udało się zweryfikować poprawności odtworzonego modelu.
+WER na datasecie PJM wynika z overfittingu modelu na zdaniach, w datasecie nie zawarto wystarczającej liczby glossów użytych w różnych kontekstach, aby model mógł je poprawnie rozróżniać. Skutkuje to niskim WER na zdaniach ze zbioru uczącego - natomiast w przypadku gdy migane zdanie
+nie znajduej sie w zbiorze uczącym, model nie jest w stanie poprawnie rozpoznać pojedyńczych glosów.
+
+Ze względu na fakt, że architektura CoSign-1s z założenia analizuje całe nagrania wideo i nie przewiduje tłumaczenia "w locie" (\textit{ang. online translation}), na potrzeby niniejszego projektu stworzono system wykorzystujący technikę ruchomego okna (\textit{ang. sliding window}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/cslr_schematic.pdf}
+    \caption{Schemat potoku przetwarzania CSLR wykorzystujący architekturę CoSign-1s oraz autorskie moduły post-processingu.}
+    \label{fig:cslr_pipeline}
+\end{figure}
+
+Jak przedstawiono na Rysunku~\ref{fig:cslr_pipeline}, strumień wideo rejestrowany przez kamerę jest analizowany klatka po klatce z wykorzystaniem biblioteki MediaPipe~\cite{mediapipe}, która ekstrahuje współrzędne punktów kluczowych twarzy, dłoni oraz postawy ciała. Zgromadzone dane przestrzenne trafiają do bufora o stałej długości 220 klatek, który przesuwa się w czasie o zdefiniowany krok (tzw. \textit{stride}) równy 15 klatek. Dzięki temu model neuronowy może na bieżąco ewaluować ostatni fragment ruchu użytkownika, umożliwiając działanie aplikacji w czasie rzeczywistym.
+
+W trybie CSLR wyekstrahowane okno danych jest przekazywane do sieci neuronowej, która przy użyciu algorytmu dekodowania CTC (\textit{ang. Connectionist Temporal Classification}~\cite{CTC-decoder}) generuje surową sekwencję glosów. Aby zniwelować błędy wynikające z fragmentacji predykcji dla nakładających się okien, zaprojektowano dwa autorskie moduły filtrujące:
+\begin{itemize}
+    \item \textbf{GlossTracker} – moduł pełniący funkcję systemu konsensusu (\textit{ang. hard voting}). Śledzi on predykcje z historii ostatnich przesunięć okna. Glos zostaje zatwierdzony tylko wtedy, gdy pojawi się minimalną, wymaganą liczbę razy, co skutecznie filtruje jednoklatkowe artefakty i halucynacje sieci.
+    \item \textbf{SentenceSmoother} – algorytm wygładzania zdań, który analizuje podobieństwo (bazujące na części wspólnej i sumie zbiorów słów) nakładających się na siebie predykcji. Łączy on powtarzające się sekwencje w płynne, stabilne zdania, ignorując pojedyncze słowa, które nie utrzymały się w wynikach wystarczająco długo.
+\end{itemize}
+
+\subsubsection{ISLR (Isolated Sign Language Recognition)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/islr_schematic.pdf}
+    \caption{Schemat potoku przetwarzania ISLR wykorzystujący uczenie zespołowe.}
+    \label{fig:islr_pipeline}
+\end{figure}
+
+Oprócz tłumaczenia ciągłego, zaimplementowano dedykowany potok przetwarzania (Rysunek~\ref{fig:islr_pipeline}) dla wyizolowanych znaków języka migowego. Algorytm również opiera się na mechanizmie ruchomego okna, jednak ze względu na specyfikę pojedynczych znaków, szerokość okna zredukowano do 30 klatek. Model w tym trybie został wyuczony na pojedynczych glosach wyekstrahowanych ze zbioru uczącego (sekcja~\ref{sec:dataset}). 
+
+Wewnętrzna architektura klasyfikatora izolowanych znaków bazuje na komponencie ST-GCN (\textit{ang. Spatial-Temporal Graph Convolutional Network})~\cite{stgcn-paper}. Implementacja tego modułu została oparta na otwartoźródłowym repozytorium~\cite{stgcn-repo} (implementacja ta została również użyta przy odtwarzaniu modelu CoSign-1s dla CSLR). Komponent ten odpowiada za ekstrakcję głębokich cech z sekwencji przestrzennych grafów (współrzędnych punktów kluczowych dłoni, twarzy i postawy). Wyekstrahowana przez moduł grafowy cechy - tensor o wymiarach $B \times 1024 \times T$ (gdzie $B$ to rozmiar wsadu (\textit{ang. batch}), a $T$ oznacza liczbę klatek w oknie) jest następnie poddawana operacji redukcji wymiaru czasowego przy użyciu mechanizmu uwagi (\textit{ang. Attentive Pooling}). Mechanizm ten agreguje cechy wzdłuż osi czasu, ucząc się przypisywać wyższe wagi klatkom niosącym najważniejsze informacje semantyczne i pomijając klatki nieistotne. Uzyskany w ten sposób wektor cech o stałej długości 1024 trafia do w pełni połączonej warstwy liniowej (\textit{ang. linear classification head}), która mapuje go na przestrzeń logitów odpowiadającą liczbie rozpoznawanych klas.
+
+\begin{table}[ht]
+\centering
+\label{tab:train_res_cosign}
+\begin{tabular}{llccc}
+\toprule
+Metryka & Wynik\\
+\midrule
+Top-1 Accuracy  & 84.41\% \\
+Top-3 Accuracy  & 95.00\% \\
+Top-5 Accuracy  & 96.39\% \\
+Macro recall& 77.56\% \\
+Mean confidence correct   & 0.9151 \\
+Mean confidence incorrect & 0.6525 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ze względu na niedostosowanie zbioru danych do zadania CSLR, zdecydowano się podzielić go na pojedyncze glosy, co umożliwiło trenowanie modelu ISLR. W ten sposób podzielono 3649 nagrań.
+Wprowadzono dodatkowo glos „BLANK", wykorzystywany do wykrywania pozycji neutralnej. Poprawiło to wyniki modelu, a w praktycznym zastosowaniu skuteczniej zapobiega błędnej klasyfikacji w sytuacji, gdy osoba migająca nie wykonuje żadnego znaku, w porównaniu do samego zastosowania statycznego progu odcięcia(\textit{threshold}) podczas inferencji.
+W przypadku ISLR zbiór danych podzielono na dwie części: uczącą i testową, przy czym zadbano o to, aby znaki obecne w zbiorze testowym nie występowały w tym samym kontekście zdaniowym co w zbiorze uczącym. 
+Oznacza to, że model musiał nauczyć się rozpoznawać pojedyncze glosy niezależnie od kontekstu zdaniowego. Szczegółowe wyniki klasyfikacji przedstawiono w tabeli \ref{tab:islr_results}.
+
+Ponieważ klasyczne modele ISLR są silnie wrażliwe na szum przejściowy (chaotyczny ruch rąk użytkownika pomiędzy właściwymi znakami), zastosowano alternatywne podejście do analizy prawdopodobieństw z warstwy Softmax. Zamiast wybierać wyłącznie najbardziej prawdopodobną klasę dla danego okna, system ekstrahuje trzy najlepsze predykcje i wykorzystuje technikę czasowego uczenia zespołowego (\textit{ang. Temporal Ensembling}~\cite{temporal-ensembling} / \textit{Soft Voting}~\cite{soft-voting}). 
+
+GlossTracker w trybie ISLR sumuje ułamkowe pewności (prawdopodobieństwa) dla każdego znaku na przestrzeni 15 ostatnich okien czasowych (co przy zdefiniowanym kroku odpowiada pamięci wstecznej o długości 2,5 sekundy). Jeśli dany znak przekroczy zdefiniowany próg skumulowanego wyniku, zostaje natychmiast uznany za poprawny.
+
+Podejście to skutecznie rozwiązuje problem szybkich znaków (np. krótkich zaimków takich jak "JA" czy "TY"), które trwają zbyt krótko, aby w pojedynczej klatce osiągnąć rygorystyczny próg pewności wymagany w podejściu \textit{hard voting}. Ostateczna predykcja trafia do bufora potwierdzającego. Moduł ten eliminuje problem migotania interfejsu graficznego, wymagając stabilności decyzji sieci przez określoną liczbę iteracji przed zaprezentowaniem wyniku użytkownikowi. Ponadto system automatycznie czyści interfejs po zakończeniu ruchu (detekcja i zatwierdzenie klasy \textit{blank}).
+
+\subsubsection{Korekta zdań z wykorzystaniem LLM}
+
+Zarówno potok CSLR, jak i ISLR zwracają wynik w postaci surowej sekwencji glosów czyli nieodmienionych form podstawowych poszczególnych znaków (np. \texttt{MAMA KUPIĆ CHLEB}). Sekwencje takie nie stanowią poprawnych zdań w języku polskim, ponieważ pozbawione są, właściwego szyku. W celu zaprezentowania użytkownikowi naturalnego tłumaczenia, na końcu potoku przetwarzania umieszczono dodatkowy moduł korekty, oparty na dużym modelu językowym Bielik, uruchamianym lokalnie za pośrednictwem serwera Ollama.
+
+Wybór rozwiązania działającego lokalnie zamiast komercyjnego API w chmurze, podyktowany był wymogiem ochrony prywatności oraz brakiem zależności od połączenia sieciowego i kosztów zapytań. Model Bielik wybrano ze względu na jego specjalizację w języku polskim, co jest kluczowe dla poprawnej odmiany fleksyjnej generowanych zdań.
+
+\paragraph{Architektura komunikacji.}
+Moduł LLM zaimplementowano jako osobny wątek roboczy (klasa \texttt{BielikWorker}, dziedzicząca po \texttt{QThread}). Wydzielenie zapytań sieciowych do oddzielnego wątku zapobiega blokowaniu interfejsu graficznego oraz głównej pętli inferencji w czasie oczekiwania na odpowiedź modelu. Przepływ danych zrealizowano w oparciu o mechanizm sygnałów i slotów biblioteki Qt: moduł rozpoznający znaki (\texttt{AIWorker}) po zatwierdzeniu każdego glosu emituje sygnał \texttt{prediction\_ready}, który trafia do bufora modelu LLM. Gotowe, przetłumaczone zdanie jest następnie zwracane sygnałem \texttt{word\_received} i prezentowane w interfejsie użytkownika.
+
+\paragraph{Mechanizm buforowania i wyzwalania.}
+Aby uniknąć wysyłania zapytania po każdym pojedynczym znaku, zastosowano mechanizm buforowania z opóźnieniem (\textit{ang. debounce}). Rozpoznane glosy gromadzone są w buforze (z pominięciem wartości pustych oraz klasy \texttt{blank}), a każdorazowo odświeżany jest znacznik czasu ostatniego znaku. Wątek roboczy cyklicznie sprawdza stan bufora i wyzwala zapytanie dopiero wtedy, gdy od momentu zarejestrowania ostatniego glosu upłynął zdefiniowany czas bezczynności (3~sekundy). Stan taki interpretowany jest jako zakończenie miganego zdania przez użytkownika. Zgromadzone glosy są wówczas scalane w jeden ciąg, bufor jest czyszczony, a do serwera Ollama wysyłane jest pojedyncze żądanie HTTP.
+
+\paragraph{Format zapytania.}
+Komunikacja odbywa się poprzez żądanie typu \texttt{POST} kierowane do lokalnego punktu końcowego API Ollama (\texttt{http://localhost:11434/api/generate}). Ładunek żądania (\textit) w formacie JSON zawiera nazwę modelu (\texttt{"bielik"}), flagę \texttt{stream} ustawioną na \texttt{false} (odpowiedź zwracana jest w całości, a nie strumieniowo) oraz polecenie czyil prompt. Polecenie zaprojektowano w taki sposób, aby ograniczyć halucynacje modelu i wymusić wierność tłumaczenia względem wejściowych glosów. Zdefiniowano w nim następujące rygorystyczne zasady:
+\begin{itemize}
+    \item zakaz dodawania słów, których nie ma w glosach wejściowych;
+    \item ignorowanie bezpośrednich powtórzeń (np. \texttt{MAMA MAMA KUPIĆ} traktowane jak \texttt{MAMA KUPIĆ});
+    \item zwrócenie wyłącznie przetłumaczonego zdania, bez komentarzy, wstępów czy cudzysłowów;
+    \item stosowanie poprawnej odmiany przez przypadki oraz odpowiednich czasów gramatycznych.
+\end{itemize}
+Odpowiedź modelu (pole \texttt{response} w zwróconym obiekcie JSON) jest odczytywana, oczyszczana z białych znaków i przekazywana do warstwy prezentacji. Ewentualne błędy komunikacji (np. niedziałający serwer Ollama) są przechwytywane i raportowane bez przerywania działania aplikacji.
+
+\paragraph{Wdrożenie modelu.}
+Model dystrybuowany jest w postaci pliku w formacie GGUF (np. \texttt{Bielik-Minitron-7B-v3.0-Instruct-Q4\_K\_M.gguf}). W celu udostępnienia go przez serwer Ollama definiuje się plik konfiguracyjny \texttt{Modelfile}, wskazujący na lokalny plik z wagami, a następnie rejestruje model pod nazwą \texttt{bielik} (wymaganą przez kod aplikacji). Procedurę przedstawiono poniżej.
+
+\begin{lstlisting}[language=bash, caption={Rejestracja i uruchomienie modelu Bielik w serwerze Ollama.}, label={lst:ollama_setup}]
+# Zawartosc pliku Modelfile (umieszczonego w katalogu z plikiem .gguf):
+#   FROM ./Bielik-Minitron-7B-v3.0-Instruct-Q4_K_M.gguf
+
+# Rejestracja modelu pod nazwa "bielik":
+ollama create bielik -f Modelfile
+
+# Uruchomienie serwera modelu (pozostaje aktywny w tle):
+ollama run bielik
+\end{lstlisting}
 
 \section{Opis problemów w trakcie realizacji projektu}
 
@@ -100,13 +283,197 @@
 
 \subsection{Text-to-PJM}
 
+\begin{center}
+    \textbf{Animacje}
+\end{center}
+\begin{itemize}
+    \item Niedokładność animacji generowanych z pluginu OpenMocap
+    \item Niekompatybilność szkieletów blendera i Unreal Engine 5 (błędy retargetowania animacji)
+    \item Problemy z przenoszeniem animacji z blendera do Unreal Engine 5
+    \item Problemy z płynnością przejść animacji
+    \item Ucinanie końców animacji przez łączenie animacji
+    \item Powrót awatara do pozycji neutralnej po zakończeniu każdej z animacji (przy małym czasie przejścia)
+\end{itemize}
+W celu rozwiązania problemów związanych z animacjami zrezygnowano z wykorzystania OpenMocap jako głównego źródła nagrywania i przeniesiono proces nagrywania animacji do Laboratorium Zanurzonej Wizualizacji Przestrzennej. Dodatkowo dobrano odpowiednie parametry mieszania animacji oraz mechanizmu Inertialization w UE5, co pozwoliło uzyskać płynniejsze przejścia pomiędzy poszczególnymi animacjami.
+\begin{center}
+    \textbf{Silnik Unreal Engine 5}
+\end{center}
+\begin{itemize}
+    \item Problemy z awatarem MetaHuman 
+    \item Częste awarie Unreal Engine 5
+    \item Problemy z importem animacji do Unreal Engine 5 (brakujące kości, niekompatybilne szkieletu)
+\end{itemize}
+Problemy związane z importem animacji zostały w dużej mierze wyeliminowane dzięki zmianie sposobu pozyskiwania animacji i bezpośredniemu wykorzystaniu nagrań z laboratorium LZWP. Część problemów związanych ze stabilnością silnika UE5 nadal występuje i wynika najprawdopodobniej z ograniczeń środowiska.
+\begin{center}
+    \textbf{Laboratorium}
+\end{center}
+\begin{itemize}
+    \item Niedokładność śledzenia ruchu palców w systemie finger tracking
+    \item Poruszanie sie awatara poprzez błędy w systemie śledzenia ruchu palców (inverse kinematics w Unreal Engine 5 nie działało najlepiej we współpracy z ruchem dłoni)
+    \item Potrzeby poprawiania animacji przez niedokładności
+\end{itemize}
+W celu poprawy jakości animacji ustabilizowano szkielet, co pozwoliło ograniczyć niepożądane ruchy awatara w osi góra-dół. Dodatkowo przeprowadzono ręczne poprawki i dostrajanie animacji w celu uzyskania bardziej naturalnych ruchów dłoni i całego ciała.
+\begin{center}
+    \textbf{Organizacja plików}
+\end{center}
+\begin{itemize}
+    \item Zbyt duże pliki z projektu nie dające się przesyłać na repozytorium
+\end{itemize}
+Problemy związane z rozmiarem projektu nie zostały wyeliminowane ze względu na ograniczenia platformy GitHub dotyczące wielkości przesyłanych plików. W związku z tym część dużych zasobów była przechowywana lokalnie przez każdego członka zespołu.
+\begin{center}
+    \textbf{Backend}
+\end{center}
+\begin{itemize}
+    \item Problemy z lematyzacją i transformacją składniową tekstu wejściowego
+    \item Trudności z obsługą zdań złożonych i podziałem tekstu na klauzule
+    \item Halucynacje modelu spacy\_stanza
+\end{itemize}
 \subsection{PJM-to-text}
+
+\begin{itemize}
+    \item Niepoprawny design datasetu do CSLR
+    \item Overfitting modelu CSLR na zdaniach, za mało próbek glosów w różnych kontekstach, żeby nauczyć model je rozróźniać
+    \item Niejednoznaczny opis implementacji modelu cosign w artykule \cite{cosign}, co uniemożliwiło weryfikację implementacji
+    \item Annotacje datasetów bywały sprzeczne, co zaniżało wyniki modelu
+    \item Dataset składa się ze zdań, przez co nie jest adekwatny do nauki modelu ISLR, który wymaga pojedynczych słów
+    \item Pretraining na datasetach LSFB, Pheonix-14T, nie przyniósł spodziewanych rezultatów; model nie miał lepszych wyników niż trening od zera.
+    \item Nikt z zespołu nie zna języka migowego, co utrudniało weryfikację wyników modelu i poprawki w annotacji datasetu
+\end{itemize}
 
 \section{Perspektywa dalszego rozwoju projektu}
 \begin{itemize}
 \end{itemize}
+
+\subsection{PJM-to-text}
+Dalszy rozwój projektu może przebiegać w kilku uzupełniających się kierunkach. 
+Najbardziej bezpośrednim krokiem jest rozbudowa zbioru danych poprzez nagranie większej liczby próbek w kontrolowanych warunkach.
+Równolegle można rozważyć udostępnienie aplikacji mobilnej umożliwiającej zdalną akwizycję danych, użytkownicy mogliby samodzielnie przesyłać nagrania bez konieczności angażowania członków zespołu.
+Docelowo do systemu mógłby zostać dodany  moduł aplikacji edukacyjnej wzorowanej na platformach takich jak Duolingo, oferującej użytkownikowi informację zwrotną dotyczącą poprawności wykonania znaku.
+Analiza rozbieżności między gestem użytkownika a wzorcem oczekiwanym przez model pozwoliłaby na wskazanie konkretnych aspektów wymagających korekty, umożliwiając samodzielną naukę znaków zawartych w zbiorze treningowym.
+
 \clearpage
 
 \printbibliography
+
+\newpage
+\begin{longtable}{lrrrl}
+\caption{Wyniki klasyfikacji izolowanych glosów PJM}
+
+\label{tab:islr_results}\\
+\toprule
+Gloss & Poprawne & Wszystkie& Dokładność& Najczęstsza pomyłka \\
+\midrule
+\endhead
+\midrule \multicolumn{5}{r}{\textit{Kontynuacja na następnej stronie}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+NIE & 0 & 1 & 0,0\% & SŁYSZEć (1/1) \\
+POMÓC-MI & 0 & 1 & 0,0\% & NOWY (1/1) \\
+TO & 0 & 5 & 0,0\% & TY (2/5) \\
+WIECZÓR & 0 & 2 & 0,0\% & NOC (2/2) \\
+TERAZ & 2 & 22 & 9,1\% & DZISIAJ (20/22) \\
+PAMIĘTAĆ & 4 & 18 & 22,2\% & POMYSŁ (11/18) \\
+DLA & 4 & 18 & 22,2\% & TEN (4/18) \\
+SŁYSZEĆ & 4 & 16 & 25,0\% & NIE-SŁYSZEĆ (9/16) \\
+ROBIĆ & 5 & 18 & 27,8\% & CO-ROBIĆ (7/18) \\
+NIE-MIEĆ & 9 & 20 & 45,0\% & NIE-CHCIEĆ (8/20) \\
+ZOSTAĆ & 7 & 15 & 46,7\% & DUŻY (4/15) \\
+WY & 10 & 21 & 47,6\% & MY (8/21) \\
+SIOSTRA & 17 & 35 & 48,6\% & RODZEŃSTWO (8/35) \\
+ON & 12 & 24 & 50,0\% & TY (8/24) \\
+WIDZIEĆ & 1 & 2 & 50,0\% & WIEDZIEĆ (1/2) \\
+ŚRODA & 1 & 2 & 50,0\% & DOBRY (1/2) \\
+TEN & 31 & 56 & 55,4\% & TA (6/56) \\
+ZIMNY & 33 & 59 & 55,9\% & MAMA (6/59) \\
+IŚĆ & 36 & 59 & 61,0\% & PÓJŚĆ (7/59) \\
+JUŻ & 12 & 19 & 63,2\% & KUPIĆ (5/19) \\
+RODZEŃSTWO & 25 & 39 & 64,1\% & BRAT (13/39) \\
+JEŚĆ & 22 & 34 & 64,7\% & JEDZENIE (8/34) \\
+POMYSŁ & 2 & 3 & 66,7\% & RANO (1/3) \\
+URODZINY & 2 & 3 & 66,7\% & CHCIEĆ (1/3) \\
+CO & 13 & 19 & 68,4\% & PARA (2/19) \\
+SAMOCHÓD & 42 & 58 & 72,4\% & DZISIAJ (7/58) \\
+ILE & 28 & 38 & 73,7\% & GDZIE (3/38) \\
+KIEDY & 14 & 19 & 73,7\% & CO (1/19) \\
+BYĆ & 30 & 40 & 75,0\% & CO (2/40) \\
+WODA & 3 & 4 & 75,0\% & MAMA (1/4) \\
+PRZEPRASZAM & 3 & 4 & 75,0\% & ZE-MNĄ (1/4) \\
+GDZIE & 43 & 56 & 76,8\% & CHCIEĆ (5/56) \\
+PRZED & 17 & 22 & 77,3\% & TO (1/22) \\
+KAWA & 42 & 54 & 77,8\% & PRACA (10/54) \\
+KLUCZ & 14 & 18 & 77,8\% & TY (2/18) \\
+KOT & 35 & 44 & 79,5\% & DOBRY (2/44) \\
+SPAĆ & 43 & 54 & 79,6\% & RANO (9/54) \\
+HERBATA & 46 & 56 & 82,1\% & PONIEDZIAłEK (2/56) \\
+KTO & 29 & 35 & 82,9\% & KIEDY (2/35) \\
+CZAS & 30 & 36 & 83,3\% & DUŻY (3/36) \\
+WTOREK & 15 & 18 & 83,3\% & BARDZO (1/18) \\
+MAŁY & 15 & 18 & 83,3\% & PRZED (1/18) \\
+MĘŻCZYZNA & 59 & 70 & 84,3\% & TY (4/70) \\
+PIES & 59 & 70 & 84,3\% & MIEĆ (4/70) \\
+DOBRY & 49 & 58 & 84,5\% & TWÓJ (5/58) \\
+PIĆ & 49 & 58 & 84,5\% & DZIEŃ (2/58) \\
+JAK & 33 & 39 & 84,6\% & MÓWIĆ (3/39) \\
+PRACA & 84 & 99 & 84,8\% & PRACOWAĆ (12/99) \\
+SMUTNY & 17 & 20 & 85,0\% & LUBIĆ (1/20) \\
+WESOŁY & 18 & 21 & 85,7\% & NIE-CHCIEĆ (1/21) \\
+MAMA & 6 & 7 & 85,7\% & ZIMNY (1/7) \\
+PRZYJACIEL & 18 & 21 & 85,7\% & KOLEGA (2/21) \\
+BABCIA & 31 & 36 & 86,1\% & STARY (2/36) \\
+MÓWIĆ & 32 & 37 & 86,5\% & GORĄCY (2/37) \\
+LUBIĆ & 13 & 15 & 86,7\% & NIE-LUBIĆ (1/15) \\
+NOWY & 101 & 116 & 87,1\% & DZIĘKOWAĆ (2/116) \\
+ZDROWY & 34 & 39 & 87,2\% & URODZINY (2/39) \\
+JUTRO & 63 & 72 & 87,5\% & WCZORAJ (6/72) \\
+MIEĆ & 59 & 67 & 88,1\% & TWÓJ (2/67) \\
+TELEFON & 37 & 42 & 88,1\% & WCZORAJ (2/42) \\
+KOBIETA & 46 & 52 & 88,5\% & DOBRY (4/52) \\
+WCZORAJ & 85 & 96 & 88,5\% & JUTRO (4/96) \\
+NOC & 32 & 36 & 88,9\% & WIECZÓR (3/36) \\
+TWÓJ & 25 & 28 & 89,3\% & DOBRY (2/28) \\
+PONIEDZIAłEK & 17 & 19 & 89,5\% & SPAĆ (2/19) \\
+DZISIAJ & 123 & 137 & 89,8\% & SAMOCHÓD (6/137) \\
+STARY & 80 & 89 & 89,9\% & BABCIA (5/89) \\
+SZKOłA & 38 & 42 & 90,5\% & WIEDZIEĆ (1/42) \\
+KOLEGA & 48 & 53 & 90,6\% & PRZYJACIEL (2/53) \\
+MUSIEĆ & 31 & 34 & 91,2\% & KLUCZ (1/34) \\
+CZEKAĆ & 21 & 23 & 91,3\% & CO-ROBIĆ (1/23) \\
+RANO & 54 & 59 & 91,5\% & KOT (1/59) \\
+MY & 33 & 36 & 91,7\% & DLA-NAS (3/36) \\
+MIGAĆ & 67 & 73 & 91,8\% & DOM (3/73) \\
+KUPIĆ & 70 & 76 & 92,1\% & JUŻ (3/76) \\
+ZMĘCZONY & 35 & 38 & 92,1\% & ZDROWY (1/38) \\
+TY & 145 & 156 & 92,9\% & ON (3/156) \\
+CHCIEĆ & 67 & 72 & 93,1\% & URODZINY (3/72) \\
+BARDZO & 127 & 136 & 93,4\% & CO-ROBIĆ (1/136) \\
+MÓJ & 101 & 108 & 93,5\% & MĘŻCZYZNA (4/108) \\
+KOCHAĆ & 16 & 17 & 94,1\% & NOWY (1/17) \\
+DZIADEK & 34 & 36 & 94,4\% & KOBIETA (1/36) \\
+TATA & 35 & 37 & 94,6\% & PIĆ (1/37) \\
+KSIĄŻKA & 18 & 19 & 94,7\% & DLA (1/19) \\
+DUŻY & 74 & 78 & 94,9\% & SAMOCHÓD (2/78) \\
+DOM & 75 & 79 & 94,9\% & DUŻY (2/79) \\
+WAŻNY & 19 & 20 & 95,0\% & WIEDZIEĆ (1/20) \\
+DZIEŃ & 38 & 40 & 95,0\% & blank (1/40) \\
+CHORY & 21 & 22 & 95,5\% & KTÓRY (1/22) \\
+JA & 253 & 264 & 95,8\% & SMUTNY (4/264) \\
+DLACZEGO & 54 & 56 & 96,4\% & KUPIĆ (1/56) \\
+UCZYĆ-SIĘ & 39 & 40 & 97,5\% & NOC (1/40) \\
+PIENIĄDZ & 39 & 40 & 97,5\% & MAŁY (1/40) \\
+ZAWSZE & 46 & 47 & 97,9\% & JAK (1/47) \\
+blank & 4988 & 4993 & 99,9\% & SIOSTRA (1/4993) \\
+MYŚLEĆ & 5 & 5 & 100,0\% & -- \\
+BRAT & 18 & 18 & 100,0\% & -- \\
+WIEDZIEĆ & 23 & 23 & 100,0\% & -- \\
+CZĘSTO & 2 & 2 & 100,0\% & -- \\
+DLA-CIEBIE & 1 & 1 & 100,0\% & -- \\
+DLA-MNIE & 2 & 2 & 100,0\% & -- \\
+NIE-CHCIEĆ & 38 & 38 & 100,0\% & -- \\
+GORĄCY & 3 & 3 & 100,0\% & -- \\
+RAZEM & 1 & 1 & 100,0\% & -- \\
+MI & 1 & 1 & 100,0\% & -- \\
+ROK & 16 & 16 & 100,0\% & -- \\
+\end{longtable}
 
 \end{document}

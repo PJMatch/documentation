@@ -1,0 +1,7 @@
+pjmatch
+=======
+
+.. automodule:: pjmatch
+   :members:
+   :show-inheritance:
+   :undoc-members:
