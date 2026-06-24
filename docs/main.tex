@@ -141,7 +141,7 @@ Mean confidence incorrect & 0.6525 \\
 \end{tabular}
 \end{table}
 
-Ze względu na niedostosowanie zbioru danych do zadania CSLR, zdecydowano się podzielić go na pojedyncze glosy, co umożliwiło trenowanie modelu ISLR. W ten sposób podzielono około 3500 nagrań.
+Ze względu na niedostosowanie zbioru danych do zadania CSLR, zdecydowano się podzielić go na pojedyncze glosy, co umożliwiło trenowanie modelu ISLR. W ten sposób podzielono 3649 nagrań.
 Wprowadzono dodatkowo glos „BLANK", wykorzystywany do wykrywania pozycji neutralnej. Poprawiło to wyniki modelu, a w praktycznym zastosowaniu skuteczniej zapobiega błędnej klasyfikacji w sytuacji, gdy osoba migająca nie wykonuje żadnego znaku, w porównaniu do samego zastosowania statycznego progu odcięcia(\textit{threshold}) podczas inferencji.
 W przypadku ISLR zbiór danych podzielono na dwie części: uczącą i testową, przy czym zadbano o to, aby znaki obecne w zbiorze testowym nie występowały w tym samym kontekście zdaniowym co w zbiorze uczącym. 
 Oznacza to, że model musiał nauczyć się rozpoznawać pojedyncze glosy niezależnie od kontekstu zdaniowego. Szczegółowe wyniki klasyfikacji przedstawiono w tabeli \ref{tab:islr_results}.
@@ -205,6 +205,14 @@ ollama run bielik
 \end{itemize}
 
 \section{Perspektywa dalszego rozwoju projektu}
+
+\subsection{PJM-to-text}
+Dalszy rozwój projektu może przebiegać w kilku uzupełniających się kierunkach. 
+Najbardziej bezpośrednim krokiem jest rozbudowa zbioru danych poprzez nagranie większej liczby próbek w kontrolowanych warunkach.
+Równolegle można rozważyć udostępnienie aplikacji mobilnej umożliwiającej zdalną akwizycję danych, użytkownicy mogliby samodzielnie przesyłać nagrania bez konieczności angażowania członków zespołu.
+Docelowo do systemu mógłby zostać dodany  moduł aplikacji edukacyjnej wzorowanej na platformach takich jak Duolingo, oferującej użytkownikowi informację zwrotną dotyczącą poprawności wykonania znaku.
+Analiza rozbieżności między gestem użytkownika a wzorcem oczekiwanym przez model pozwoliłaby na wskazanie konkretnych aspektów wymagających korekty, umożliwiając samodzielną naukę znaków zawartych w zbiorze treningowym.
+
 \clearpage
 
 \printbibliography
