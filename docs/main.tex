@@ -270,7 +270,7 @@ ollama run bielik
 
 \subsection{Dataset}
 \begin{itemize}
-    \item Zapis do pamięci telefonu/galerii łamiący zasady prywatności.
+    \item Zapis do pamięci telefonu/galerii łamiący zasady prywatności. 
     \item Drgania obrazu niszczące jakość datasetu,
     \item Przestoje w nagrywaniu wywołane słabym połączeniem sieciowym i oczekiwaniem na wysłanie pliku.
     \item Zbyt długi przerwy między nagraniami wywołane wprowadzaniem danych takich jak numer aktualnego nagrania w aplikacji.
@@ -278,6 +278,7 @@ ollama run bielik
     \item Problem interpersonalny miedzy wolontariuszami.
     \item Problem komunikacyjny miedzy zespołami social team a dataset team, czyli przyjście na nagrywki, które sie nie miały odbyć.
     \item Niektórzy wolontariusze sie nie zjawali lub odwoływali nagrywki.
+    \item Nikt z zespołu nie zna języka migowego, co utrudniało weryfikację wyników modelu i poprawki w annotacji datasetu. Rozwiązano to przez współprace z wolontariuszami i samodzielną nauką języka migowego
 \end{itemize}
 
 \subsection{Text-to-PJM}
@@ -333,13 +334,19 @@ Problemy związane z rozmiarem projektu nie zostały wyeliminowane ze względu n
 \subsection{PJM-to-text}
 
 \begin{itemize}
+    \item Podczas gdy \cite{cosign} wykorzystywał bibliotekę MMPose do ekstrakcji
+    szkieletu, w niniejszej pracy zdecydowano się na MediaPipe \cite{mediapipe}
+    ze względu na znacznie mniejsze wymagania obliczeniowe, kosztem pewnej
+    dokładności estymacji pozy.
     \item Niepoprawny design datasetu do CSLR
     \item Overfitting modelu CSLR na zdaniach, za mało próbek glosów w różnych kontekstach, żeby nauczyć model je rozróźniać
     \item Niejednoznaczny opis implementacji modelu cosign w artykule \cite{cosign}, co uniemożliwiło weryfikację implementacji
-    \item Annotacje datasetów bywały sprzeczne, co zaniżało wyniki modelu
-    \item Dataset składa się ze zdań, przez co nie jest adekwatny do nauki modelu ISLR, który wymaga pojedynczych słów
+    \item Annotacje datasetów bywały sprzeczne, co zaniżało wyniki modelu.
+    \item Dataset składa się ze zdań, przez co nie jest adekwatny do nauki modelu ISLR, który wymaga pojedynczych słów. Udało sie to rozwiązać za pomocą manualnej annotacji datasetu
     \item Pretraining na datasetach LSFB, Pheonix-14T, nie przyniósł spodziewanych rezultatów; model nie miał lepszych wyników niż trening od zera.
-    \item Nikt z zespołu nie zna języka migowego, co utrudniało weryfikację wyników modelu i poprawki w annotacji datasetu
+    \item Debugowanie sieci neuronowej stanowiło utrudnienie
+    problem ten częściowo rozwiązano poprzez eksperymentalny dobór parametrów
+    oraz pokrycie kluczowych segmentów modelu testami jednostkowymi.
 \end{itemize}
 
 \section{Perspektywa dalszego rozwoju projektu}
