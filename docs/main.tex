@@ -62,7 +62,6 @@ Oskar Wędołowski
 \tableofcontents
 \clearpage
 
-\section{Opis problemu}
 % \begin{itemize}
 %     \item Standardowa aplikacja aparatu zapisuje wszystko w galerii telefonu, a ze względu na ochronę danych nie mogliśmy zapisywać nagrań na prywatnych urządzeniach.
 %     \item Potrzeba tworzenia plików \texttt{.json} z metadanymi.
@@ -74,24 +73,23 @@ Oskar Wędołowski
 % \end{itemize}
 
 
-\section{Stack technologiczny}
+\section{Stack technologiczny i licencje}
 \begin{itemize}
-    \item \textbf{Dataset:} Python, Pandas, imageio-ffmpeg, React Native (Expo), Stanza
-    \item \textbf{PJM-to-text:} Python, PyTorch, MediaPipe, MMPose
-    \item \textbf{Text-to-PJM:} Python, SpaCy-Stanza, FastAPI, Uvicorn, Unreal Engine 5, VaRest
-\end{itemize}
-
-\subsection{Licencje wykorzystanych narzędzi}
-\begin{itemize}
-    \item \textbf{Python:} Python Software Foundation License (PSFL) - otwarta, bezpłatna licencja open-source, pozwalająca na dowolne modyfikowanie i dystrybucję kodu.
-    \item \textbf{Pandas:} Licencja BSD (3-Clause License) - licencja open-source, zezwalająca na dowolne prywatne i komercyjne modyfikowanie kodu źródłowego pod warunkiem zachowania informacji o prawach autorskich. Możemy użyć, ponieważ: na publicznym GitHubie udostępniamy jedynie nasz autorski skrypt, a nie pliki źródłowe samej biblioteki. Każdy, kto pobierze projekt, musi zainstalować Pandas samodzielnie, a instalator automatycznie dołącza wymagany plik licencyjny.
-    \item \textbf{imageio-ffmpeg:} Licencja MIT. - w pełni otwarta i darmowa licencja open-source, dająca użytkownikom nieograniczone prawo do używania, kopiowania i modyfikowania oprogramowania.
-    \item \textbf{React Native (Expo):} Licencja MIT
-    \item \textbf{Stanza:} Licencja Apache v2.0
+    \item \textbf{Dataset:} Python$^{1}$, Pandas$^{2}$, imageio-ffmpeg$^{3}$, React Native (Expo)$^{3}$, Stanza$^{4}$
+    \item \textbf{PJM-to-text:} Python$^{1}$, PyTorch$^{2}$, MediaPipe$^{4}$, MMPose$^{4}$
+    \item \textbf{Text-to-PJM:} Python$^{1}$, SpaCy-Stanza$^{4}$, FastAPI$^{3}$, Uvicorn$^{2}$, Unreal Engine 5$^{5}$, VaRest$^{3}$
 \end{itemize}
 
 
-\clearpage
+\footnotetext[1]{Python Software Foundation License (PSFL)}
+\footnotetext[2]{BSD 3-Clause License}
+\footnotetext[3]{MIT License}
+\footnotetext[4]{Apache License Version 2.0}
+\footnotetext[5]{Unreal Engine End User License Agreement (EULA)}
+
+\section{Opis problemu}
+Głównym problemem, na który odpowiada projekt, jest bariera komunikacyjna pomiędzy osobami posługującymi się Polskim Językiem Migowym (PJM) a osobami słyszącymi. Przezwyciężenie tej bariery wymaga stworzenia skutecznego systemu dwukierunkowego tłumaczenia w czasie rzeczywistym. Realizacja tak złożonego systemu wiąże się z koniecznością rozwiązania problemów na dwóch głównych płaszczyznach: budowy odpowiedniego zbioru danych (datasetu) oraz opracowania modułów translacyjnych.
+
 \section{Opis rozwiązań}
 
 \subsection{Dataset} \label{sec:dataset}
