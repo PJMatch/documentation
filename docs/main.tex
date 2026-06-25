@@ -266,6 +266,13 @@ ollama create bielik -f Modelfile
 ollama run bielik
 \end{lstlisting}
 
+\paragraph{Wyniki ewaluacji.}
+
+W celu oceny skuteczności modułu korekty zdań przeprowadzono eksperyment na zbiorze 1300 próbek wygenerowanych przez przetrenowany model CSLR. Wykorzystany model rozpoznawania
+języka migowego osiągał wcześniej wartość WER równą 55\%, co oznaczało stosunkowo dużą liczbę błędów w generowanych sekwencjach glosów. Pomimo niedoskonałości danych wejściowych, integracja z modelem językowym Bielik pozwoliła uzyskać wartość BLEU-1 równą 48.82 oraz BLEU-2 równą 33.10. Otrzymane wyniki wskazują, że model językowy był w stanie częściowo skorygować błędy występujące w sekwencjach glosów oraz wygenerować zdania bliższe naturalnemu językowi polskiemu. Jednocześnie niższa wartość BLEU-2 sugeruje, że największe trudności dotyczyły zachowania poprawnych zależności pomiędzy kolejnymi wyrazami, co wynikało przede wszystkim z błędów popełnianych przez moduł rozpoznawania PJM.
+
+\section{Opis problemów w trakcie realizacji projektu}
+
 \section{Opis problemów w trakcie realizacji projektu}
 
 \subsection{Dataset}
