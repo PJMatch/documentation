@@ -50,19 +50,22 @@
 \clearpage
 
 \section{Opis problemu}
-\begin{itemize}
-    \item Standardowa aplikacja aparatu zapisuje wszystko w galerii telefonu, a ze względu na ochronę danych nie mogliśmy zapisywać nagrań na prywatnych urządzeniach.
-    \item Potrzeba tworzenia plików \texttt{.json} z metadanymi.
-    \item Trzęsienie się telefonu na statywie po każdym dotknięciu ekranu.
-    \item Słaby internet w miejscach nagrywania, powodujący, że nagrania bardzo długo się wysyłały, co blokowało pracę.
-    \item Konieczność przyspieszenia i uproszczenia całego procesu nagrywania.
-    \item Stworzenie 500 zdań do datasetu z różnicowanym kontekstem składających się z 100 glossów.
-    \item Kontrolowanie ilości zdań nagrywane przez wolontariuszy.
-\end{itemize}
+% \begin{itemize}
+%     \item Standardowa aplikacja aparatu zapisuje wszystko w galerii telefonu, a ze względu na ochronę danych nie mogliśmy zapisywać nagrań na prywatnych urządzeniach.
+%     \item Potrzeba tworzenia plików \texttt{.json} z metadanymi.
+%     \item Trzęsienie się telefonu na statywie po każdym dotknięciu ekranu.
+%     \item Słaby internet w miejscach nagrywania, powodujący, że nagrania bardzo długo się wysyłały, co blokowało pracę.
+%     \item Konieczność przyspieszenia i uproszczenia całego procesu nagrywania.
+%     \item Stworzenie 500 zdań do datasetu z różnicowanym kontekstem składających się z 100 glossów.
+%     \item Kontrolowanie ilości zdań nagrywane przez wolontariuszy.
+% \end{itemize}
+
 
 \section{Stack technologiczny}
 \begin{itemize}
-    \item \textbf{Dataset:} Python, Pandas, imageio-ffmpeg, React Native (Expo), Stanza.
+    \item \textbf{Dataset:} Python, Pandas, imageio-ffmpeg, React Native (Expo), Stanza
+    \item \textbf{PJM-to-text:} Python, PyTorch, MediaPipe, MMPose
+    \item \textbf{Text-to-PJM:} Python, SpaCy-Stanza, FastAPI, Uvicorn, Unreal Engine 5, VaRest
 \end{itemize}
 
 \subsection{Licencje wykorzystanych narzędzi}
@@ -73,9 +76,15 @@
     \item \textbf{React Native (Expo):} Licencja MIT
     \item \textbf{Stanza:} Licencja Apache v2.0
 \end{itemize}
+
+
+\clearpage
 \section{Opis rozwiązań}
 
-\subsection{Dataset}
+\subsection{Dataset} \label{sec:dataset}
+
+Projekt zakładał sworzenie zbioru danych składającego się z 5000 nagrań zdań Polskiego Języka Migowego. Aby to osiągnąć zaimplementowano szerego rozwiązań, które pomogły w realizacji tego założenia: 
+
 \begin{itemize}
     \item \textbf{Własna nagrywarka:} Stworzenie od zera dedykowanej aplikacji mobilnej. Rozwiązało to problem zapisu w galerii oraz pozwoliło na automatyczne tworzenie plików \texttt{.json} do każdego nagrania.
     \item \textbf{Piloty Bluetooth:} Aplikacja została zintegrowana z bezprzewodowymi pilotami. Rozwiązało to problem trzęsienia się telefonu na statywie.
@@ -89,58 +98,47 @@
 
 \subsection{Text-to-PJM}
 
-\section{Stack technologiczny}
-\subsection{Text-to-PJM}
-\begin{itemize}
-    \item Python 3.11
-    \item SpaCy-Stanza
-    \item FastAPI
-    \item Uvicorn
-    \item Unreal Engine 5
-    \item VaRest
-\end{itemize}
+\subsubsection{Moduł NLP}
+Backend modułu Text-to-PJM odpowiada za przetwarzanie tekstu wejściowego w języku polskim na uporządkowaną reprezentację glos, która następnie jest wykorzystywana przez aplikację wizualną do odtworzenia odpowiednich animacji PJM.
 
-\begin{itemize}
-    \item Python
-    \item PyTorch
-\end{itemize}
+Pierwszym etapem działania systemu jest analiza tekstu wejściowego. Użytkownik podaje zdanie lub zestaw zdań w języku polskim, które trafiają do modułu odpowiedzialnego za lematyzację oraz uproszczoną transformację składniową. Do analizy językowej wykorzystano bibliotekę \texttt{spacy\_stanza}, która pozwala na przetwarzanie języka polskiego z uwzględnieniem takich informacji jak lemat wyrazu, część mowy, zależności składniowe oraz cechy morfologiczne.
 
-\section{Opis rozwiązań}
+Głównym zadaniem modułu lematyzacji jest sprowadzenie odmienionych form wyrazów do ich form podstawowych. Przykładowo słowa takie jak \textit{mam}, \textit{miałem} lub \textit{miała} mogą zostać sprowadzone do lematu \textit{mieć}. Dzięki temu system może łatwiej dopasować słowa z tekstu wejściowego do dostępnych animacji, których nazwy są przechowywane w formie bazowej. Jest to szczególnie istotne w języku polskim, ponieważ jedno słowo może występować w wielu różnych formach gramatycznych.
 
-\subsection{Dataset} \label{sec:dataset}
+Oprócz samej lematyzacji backend wykonuje dodatkowe operacje przygotowujące tekst do reprezentacji w PJM. System pomija część elementów, które nie są bezpośrednio reprezentowane w docelowym zapisie glosowym, a także zmienia kolejność wyrazów. Moduł został również rozszerzony o obsługę zdań pytających, przeczeń, czasowników posiłkowych, wyrażeń czasowych oraz podział zdań na klauzule.
 
-\subsection{Text-to-PJM}
-\subsubsection{Backend}
+Wygenerowana reprezentacja tekstu uwzględnia formy podstawowe wyrazów, kolejność glos oraz dodatkowe oznaczenia zgodne z przyjętym sposobem prezentowania treści w Polskim Języku Migowym.
 
-\begin{center}
-    \textbf{Moduł NLP}
-\end{center}
-Backend modułu Text-to-PJM odpowiada za przetwarzanie tekstu wejściowego w języku polskim na uporządkowaną reprezentację glos, która następnie jest wykorzystywana przez aplikację wizualną do odtworzenia odpowiednich animacji PJM.\\\\
-Pierwszym etapem działania systemu jest analiza tekstu wejściowego. Użytkownik podaje zdanie lub zestaw zdań w języku polskim, które trafiają do modułu odpowiedzialnego za lematyzację oraz uproszczoną transformację składniową. Do analizy językowej wykorzystano bibliotekę \texttt{spacy\_stanza}, która pozwala na przetwarzanie języka polskiego z uwzględnieniem takich informacji jak lemat wyrazu, część mowy, zależności składniowe oraz cechy morfologiczne.\\\\
-Głównym zadaniem modułu lematyzacji jest sprowadzenie odmienionych form wyrazów do ich form podstawowych. Przykładowo słowa takie jak \textit{mam}, \textit{miałem} lub \textit{miała} mogą zostać sprowadzone do lematu \textit{mieć}. Dzięki temu system może łatwiej dopasować słowa z tekstu wejściowego do dostępnych animacji, których nazwy są przechowywane w formie bazowej. Jest to szczególnie istotne w języku polskim, ponieważ jedno słowo może występować w wielu różnych formach gramatycznych.\\\\
-Oprócz samej lematyzacji backend wykonuje dodatkowe operacje przygotowujące tekst do reprezentacji w PJM. System pomija część elementów, które nie są bezpośrednio reprezentowane w docelowym zapisie glosowym, a także zmienia kolejność wyrazów. Moduł został również rozszerzony o obsługę zdań pytających, przeczeń, czasowników posiłkowych, wyrażeń czasowych oraz podział zdań na klauzule.\\\\
-Wygenerowana reprezentacja tekstu uwzględnia formy podstawowe wyrazów, kolejność glos oraz dodatkowe oznaczenia zgodne z przyjętym sposobem prezentowania treści w Polskim Języku Migowym.\\
+\subsubsection{FastAPI}
 
-\begin{center}
-    \textbf{FastAPI}
-\end{center}
-Drugim elementem backendu jest aplikacja API przygotowana z wykorzystaniem frameworka \texttt{FastAPI}. Jej zadaniem jest udostępnienie funkcji przetwarzania tekstu innym częściom systemu, przede wszystkim aplikacji wizualnej stworzonej w Unreal Engine.\\\\
-Aplikacja API udostępnia endpoint, do którego przesyłany jest tekst wpisany przez użytkownika. Po odebraniu żądania backend przekazuje tekst do modułu NLP, a następnie zwraca wynik w formacie JSON. Odpowiedź zawiera listę glosów oraz elementów specjalnych, które mogą zostać wykorzystane przez aplikację wizualną do wyszukania i odtworzenia odpowiednich animacji.\\\\
-Po wygenerowaniu glosów backend sprawdza, czy dla każdego z nich istnieje odpowiadająca animacja. Lista dostępnych animacji jest wczytywana z pliku, w którym zapisano nazwy animacji znajdujących się w projekcie. Jeżeli dana glosa posiada odpowiadającą jej animację, zostaje przekazana do aplikacji wizualnej jako nazwa animacji do odtworzenia. W przypadku braku gotowej animacji system realizuje literowanie danego słowa.\\\\
-FastAPI umożliwia komunikację z aplikacją wizualną przez żądania HTTP. Dzięki temu część odpowiedzialna za przetwarzanie tekstu jest oddzielona od projektu w Unreal Engine i może być rozwijana niezależnie od front-endu.\\
+Drugim elementem backendu jest aplikacja API przygotowana z wykorzystaniem frameworka \texttt{FastAPI}. Jej zadaniem jest udostępnienie funkcji przetwarzania tekstu innym częściom systemu, przede wszystkim aplikacji wizualnej stworzonej w Unreal Engine.
 
-\begin{center}
-    \textbf{Aplikacja wizualna}
-\end{center}
-Główną część aplikacji stanowi środowisko Unreal Engine 5, w którym realizowana jest wizualizacja języka migowego przy użyciu modelu awatara MetaHuman.\\\\
-Na początkowym etapie projektu animacje były przygotowywane z wykorzystaniem programu Blender oraz dodatku OpenMocap. Rozwiązanie to pozwalało na automatyczne generowanie animacji na podstawie nagrań z jednej, bądź dwóch kamer. Niestety jednak występowały w tym rozwiązaniu liczne problemy związane na przykład z kompatybilnością szkieletów lub poprawnym eksportem animacji do formatu FBX. Dodatkowo pojawiały się trudności podczas przenoszenia animacji do środowiska Unreal Engine 5 oraz ich retargetowania na model MetaHuman. Z tego względu zdecydowano się na zmianę sposobu generowania animacji.\\\\
-W dalszej części projektu wykorzystano Laboratorium Zanurzonej Wizualizacji Przestrzennej (LZWP), wyposażone w system śledzenia ruchu dłoni (finger tracking). Pozwoliło to na dokładniejsze odwzorowanie ruchów palców i dłoni, które stanowią kluczowy element języka migowego. Zarejestrowane animacje były bezpośrednio importowane do środowiska Unreal Engine 5 i przypisywane do modelu MetaHuman.\\\\
-Proces działania systemu rozpoczyna się od przekształcenia zdania tekstowego na sekwencję glossów odpowiadających poszczególnym znakom języka migowego. Każdy gloss jest powiązany z odpowiednią animacją przechowywaną w aplikacji.\\\\
-Komunikacja pomiędzy modułem tłumaczenia a aplikacją została zrealizowana z wykorzystaniem biblioteki VaRest oraz frameworka FastAPI. Moduł tłumaczenia zwraca odpowiedź w postaci formatu JSON zawierającego listę nazw animacji odpowiadających poszczególnym znakom.\\\\
-Po stronie Unreal Engine 5 przygotowano strukturę Blueprintów odpowiedzialną za obsługę interfejsu użytkownika, wysyłanie zapytań HTTP oraz odbieranie odpowiedzi z serwera FastAPI. Otrzymane dane są następnie przekazywane do systemu odpowiedzialnego za odtwarzanie animacji.\\\\
-W celu zarządzania sekwencjami znaków zaimplementowano komponent \texttt{PJMPlayer}. Komponent ten odpowiada za tworzenie kolejki animacji, ich sekwencyjne odtwarzanie oraz zarządzanie czasem przejść pomiędzy kolejnymi znakami. Dzięki temu możliwe jest automatyczne prezentowanie całych zdań bez konieczności ręcznego uruchamiania poszczególnych animacji.\\\\
-Do odtwarzania znaków wykorzystano mechanizmy dostępne w Unreal Engine 5, takie jak Animation Montage, Slot Animations oraz Inertialization. Pozwoliło to na uzyskanie bardziej naturalnych i płynnych przejść pomiędzy kolejnymi znakami języka migowego.\\\\
-Całość została zaprojektowana w sposób modułowy, dzięki czemu możliwe jest dalsze rozszerzanie bazy znaków, rozbudowa modułu tłumaczenia oraz implementacja kolejnych funkcjonalności bez konieczności modyfikowania głównej architektury aplikacji.\\
+Aplikacja API udostępnia endpoint, do którego przesyłany jest tekst wpisany przez użytkownika. Po odebraniu żądania backend przekazuje tekst do modułu NLP, a następnie zwraca wynik w formacie JSON. Odpowiedź zawiera listę glosów oraz elementów specjalnych, które mogą zostać wykorzystane przez aplikację wizualną do wyszukania i odtworzenia odpowiednich animacji.
+
+Po wygenerowaniu glosów backend sprawdza, czy dla każdego z nich istnieje odpowiadająca animacja. Lista dostępnych animacji jest wczytywana z pliku, w którym zapisano nazwy animacji znajdujących się w projekcie. Jeżeli dana glosa posiada odpowiadającą jej animację, zostaje przekazana do aplikacji wizualnej jako nazwa animacji do odtworzenia. W przypadku braku gotowej animacji system realizuje literowanie danego słowa.
+
+FastAPI umożliwia komunikację z aplikacją wizualną przez żądania HTTP. Dzięki temu część odpowiedzialna za przetwarzanie tekstu jest oddzielona od projektu w Unreal Engine i może być rozwijana niezależnie od front-endu.
+
+\subsubsection{Aplikacja wizualna}
+
+Główną część aplikacji stanowi środowisko Unreal Engine 5, w którym realizowana jest wizualizacja języka migowego przy użyciu modelu awatara MetaHuman.
+
+Na początkowym etapie projektu animacje były przygotowywane z wykorzystaniem programu Blender oraz dodatku OpenMocap. Rozwiązanie to pozwalało na automatyczne generowanie animacji na podstawie nagrań z jednej, bądź dwóch kamer. Niestety jednak występowały w tym rozwiązaniu liczne problemy związane na przykład z kompatybilnością szkieletów lub poprawnym eksportem animacji do formatu FBX. Dodatkowo pojawiały się trudności podczas przenoszenia animacji do środowiska Unreal Engine 5 oraz ich retargetowania na model MetaHuman. Z tego względu zdecydowano się na zmianę sposobu generowania animacji.
+ 
+W dalszej części projektu wykorzystano Laboratorium Zanurzonej Wizualizacji Przestrzennej (LZWP), wyposażone w system śledzenia ruchu dłoni (finger tracking). Pozwoliło to na dokładniejsze odwzorowanie ruchów palców i dłoni, które stanowią kluczowy element języka migowego. Zarejestrowane animacje były bezpośrednio importowane do środowiska Unreal Engine 5 i przypisywane do modelu MetaHuman.
+
+ 
+Proces działania systemu rozpoczyna się od przekształcenia zdania tekstowego na sekwencję glossów odpowiadających poszczególnym znakom języka migowego. Każdy gloss jest powiązany z odpowiednią animacją przechowywaną w aplikacji.
+
+Komunikacja pomiędzy modułem tłumaczenia a aplikacją została zrealizowana z wykorzystaniem biblioteki VaRest oraz frameworka FastAPI. Moduł tłumaczenia zwraca odpowiedź w postaci formatu JSON zawierającego listę nazw animacji odpowiadających poszczególnym znakom.
+
+Po stronie Unreal Engine 5 przygotowano strukturę Blueprintów odpowiedzialną za obsługę interfejsu użytkownika, wysyłanie zapytań HTTP oraz odbieranie odpowiedzi z serwera FastAPI. Otrzymane dane są następnie przekazywane do systemu odpowiedzialnego za odtwarzanie animacji.
+
+W celu zarządzania sekwencjami znaków zaimplementowano komponent \texttt{PJMPlayer}. Komponent ten odpowiada za tworzenie kolejki animacji, ich sekwencyjne odtwarzanie oraz zarządzanie czasem przejść pomiędzy kolejnymi znakami. Dzięki temu możliwe jest automatyczne prezentowanie całych zdań bez konieczności ręcznego uruchamiania poszczególnych animacji.
+ 
+Do odtwarzania znaków wykorzystano mechanizmy dostępne w Unreal Engine 5, takie jak Animation Montage, Slot Animations oraz Inertialization. Pozwoliło to na uzyskanie bardziej naturalnych i płynnych przejść pomiędzy kolejnymi znakami języka migowego.
+
+Całość została zaprojektowana w sposób modułowy, dzięki czemu możliwe jest dalsze rozszerzanie bazy znaków, rozbudowa modułu tłumaczenia oraz implementacja kolejnych funkcjonalności bez konieczności modyfikowania głównej architektury aplikacji.
 
 \subsection{PJM-to-text}
 
@@ -149,20 +147,20 @@ Projekt przewidywał utworzenie modułu tłumaczenia ciągłego języka migowego
 
 % TUTAJ PORÓWNANIE WYNIKÓW NASZEGO I OG COSIGN NA PHOENIXIE
 % tabela poniezej tylko poglądowa, wazne zeby uzywac tabel z pakietu booktabs
-\begin{table}[H]
-    \centering
-    \caption{Dodać BLUE wyniki}
-    \label{tab:train_res_cosign}
-    \begin{tabular}{llccc}
-        \toprule
-        Typ datasetu& WER \\
-        \midrule
-        Pheonix-14T & 38\% \\
-        PJM signer independant& 12\% \\
-        PJM sentence independant& 55\% \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \caption{Dodać BLUE wyniki}
+%     \label{tab:train_res_cosign}
+%     \begin{tabular}{llccc}
+%         \toprule
+%         Typ datasetu& WER \\
+%         \midrule
+%         Pheonix-14T & 38\% \\
+%         PJM signer independant& 12\% \\
+%         PJM sentence independant& 55\% \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
 
 \begin{enumerate}
     \item Pheonix-14T - dataset do CSLR dla języka niemieckiego, zawierający 14 000 nagrań wideo. Zbiór ten jest powszechnie używany jako benchmark w dziedzinie rozpoznawania języka migowego.
@@ -238,13 +236,14 @@ Zarówno potok CSLR, jak i ISLR zwracają wynik w postaci surowej sekwencji glos
 Wybór rozwiązania działającego lokalnie zamiast komercyjnego API w chmurze, podyktowany był wymogiem ochrony prywatności oraz brakiem zależności od połączenia sieciowego i kosztów zapytań. Model Bielik wybrano ze względu na jego specjalizację w języku polskim, co jest kluczowe dla poprawnej odmiany fleksyjnej generowanych zdań.
 
 \paragraph{Architektura komunikacji.}
-Moduł LLM zaimplementowano jako osobny wątek roboczy (klasa \texttt{BielikWorker}, dziedzicząca po \texttt{QThread}). Wydzielenie zapytań sieciowych do oddzielnego wątku zapobiega blokowaniu interfejsu graficznego oraz głównej pętli inferencji w czasie oczekiwania na odpowiedź modelu. Przepływ danych zrealizowano w oparciu o mechanizm sygnałów i slotów biblioteki Qt: moduł rozpoznający znaki (\texttt{AIWorker}) po zatwierdzeniu każdego glosu emituje sygnał \texttt{prediction\_ready}, który trafia do bufora modelu LLM. Gotowe, przetłumaczone zdanie jest następnie zwracane sygnałem \texttt{word\_received} i prezentowane w interfejsie użytkownika.
+
+Moduł LLM zaimplementowano jako osobny wątek roboczy (klasa \textit{BielikWorker}, dziedzicząca po \textit{QThread}). Wydzielenie zapytań sieciowych do oddzielnego wątku zapobiega blokowaniu interfejsu graficznego oraz głównej pętli inferencji w czasie oczekiwania na odpowiedź modelu. Przepływ danych zrealizowano w oparciu o mechanizm sygnałów i slotów biblioteki Qt: moduł rozpoznający znaki (\textit{AIWorker}) po zatwierdzeniu każdego glosu emituje sygnał \textit{prediction\_ready}, który trafia do bufora modelu LLM. Gotowe, przetłumaczone zdanie jest następnie zwracane sygnałem \textit{word\_received} i prezentowane w interfejsie użytkownika.
 
 \paragraph{Mechanizm buforowania i wyzwalania.}
 Aby uniknąć wysyłania zapytania po każdym pojedynczym znaku, zastosowano mechanizm buforowania z opóźnieniem (\textit{ang. debounce}). Rozpoznane glosy gromadzone są w buforze (z pominięciem wartości pustych oraz klasy \texttt{blank}), a każdorazowo odświeżany jest znacznik czasu ostatniego znaku. Wątek roboczy cyklicznie sprawdza stan bufora i wyzwala zapytanie dopiero wtedy, gdy od momentu zarejestrowania ostatniego glosu upłynął zdefiniowany czas bezczynności (3~sekundy). Stan taki interpretowany jest jako zakończenie miganego zdania przez użytkownika. Zgromadzone glosy są wówczas scalane w jeden ciąg, bufor jest czyszczony, a do serwera Ollama wysyłane jest pojedyncze żądanie HTTP.
 
 \paragraph{Format zapytania.}
-Komunikacja odbywa się poprzez żądanie typu \texttt{POST} kierowane do lokalnego punktu końcowego API Ollama (\texttt{http://localhost:11434/api/generate}). Ładunek żądania (\textit) w formacie JSON zawiera nazwę modelu (\texttt{"bielik"}), flagę \texttt{stream} ustawioną na \texttt{false} (odpowiedź zwracana jest w całości, a nie strumieniowo) oraz polecenie czyil prompt. Polecenie zaprojektowano w taki sposób, aby ograniczyć halucynacje modelu i wymusić wierność tłumaczenia względem wejściowych glosów. Zdefiniowano w nim następujące rygorystyczne zasady:
+Komunikacja odbywa się poprzez żądanie typu \texttt{POST} kierowane do lokalnego punktu końcowego API Ollama (\texttt{http://localhost:11434/api/generate}). Ładunek żądania w formacie JSON zawiera nazwę modelu (\texttt{"bielik"}), flagę \texttt{stream} ustawioną na \texttt{false} (odpowiedź zwracana jest w całości, a nie strumieniowo) oraz polecenie czyil prompt. Polecenie zaprojektowano w taki sposób, aby ograniczyć halucynacje modelu i wymusić wierność tłumaczenia względem wejściowych glosów. Zdefiniowano w nim następujące rygorystyczne zasady:
 \begin{itemize}
     \item zakaz dodawania słów, których nie ma w glosach wejściowych;
     \item ignorowanie bezpośrednich powtórzeń (np. \texttt{MAMA MAMA KUPIĆ} traktowane jak \texttt{MAMA KUPIĆ});
@@ -283,9 +282,8 @@ ollama run bielik
 
 \subsection{Text-to-PJM}
 
-\begin{center}
-    \textbf{Animacje}
-\end{center}
+\subsubsection{Animacje}
+
 \begin{itemize}
     \item Niedokładność animacji generowanych z pluginu OpenMocap
     \item Niekompatybilność szkieletów blendera i Unreal Engine 5 (błędy retargetowania animacji)
@@ -294,40 +292,44 @@ ollama run bielik
     \item Ucinanie końców animacji przez łączenie animacji
     \item Powrót awatara do pozycji neutralnej po zakończeniu każdej z animacji (przy małym czasie przejścia)
 \end{itemize}
+
 W celu rozwiązania problemów związanych z animacjami zrezygnowano z wykorzystania OpenMocap jako głównego źródła nagrywania i przeniesiono proces nagrywania animacji do Laboratorium Zanurzonej Wizualizacji Przestrzennej. Dodatkowo dobrano odpowiednie parametry mieszania animacji oraz mechanizmu Inertialization w UE5, co pozwoliło uzyskać płynniejsze przejścia pomiędzy poszczególnymi animacjami.
-\begin{center}
-    \textbf{Silnik Unreal Engine 5}
-\end{center}
+
+\subsubsection{Silnik Unreal Engine 5}
+
 \begin{itemize}
     \item Problemy z awatarem MetaHuman 
     \item Częste awarie Unreal Engine 5
     \item Problemy z importem animacji do Unreal Engine 5 (brakujące kości, niekompatybilne szkieletu)
 \end{itemize}
+
 Problemy związane z importem animacji zostały w dużej mierze wyeliminowane dzięki zmianie sposobu pozyskiwania animacji i bezpośredniemu wykorzystaniu nagrań z laboratorium LZWP. Część problemów związanych ze stabilnością silnika UE5 nadal występuje i wynika najprawdopodobniej z ograniczeń środowiska.
-\begin{center}
-    \textbf{Laboratorium}
-\end{center}
+
+\subsubsection{Laboratorium}
+
 \begin{itemize}
     \item Niedokładność śledzenia ruchu palców w systemie finger tracking
     \item Poruszanie sie awatara poprzez błędy w systemie śledzenia ruchu palców (inverse kinematics w Unreal Engine 5 nie działało najlepiej we współpracy z ruchem dłoni)
     \item Potrzeby poprawiania animacji przez niedokładności
 \end{itemize}
 W celu poprawy jakości animacji ustabilizowano szkielet, co pozwoliło ograniczyć niepożądane ruchy awatara w osi góra-dół. Dodatkowo przeprowadzono ręczne poprawki i dostrajanie animacji w celu uzyskania bardziej naturalnych ruchów dłoni i całego ciała.
-\begin{center}
-    \textbf{Organizacja plików}
-\end{center}
+
+\subsubsection{Organizacja plików}
+
 \begin{itemize}
     \item Zbyt duże pliki z projektu nie dające się przesyłać na repozytorium
 \end{itemize}
+
 Problemy związane z rozmiarem projektu nie zostały wyeliminowane ze względu na ograniczenia platformy GitHub dotyczące wielkości przesyłanych plików. W związku z tym część dużych zasobów była przechowywana lokalnie przez każdego członka zespołu.
-\begin{center}
-    \textbf{Backend}
-\end{center}
+
+\subsubsection{Backend}
+
 \begin{itemize}
     \item Problemy z lematyzacją i transformacją składniową tekstu wejściowego
     \item Trudności z obsługą zdań złożonych i podziałem tekstu na klauzule
     \item Halucynacje modelu spacy\_stanza
 \end{itemize}
+
 \subsection{PJM-to-text}
 
 \begin{itemize}
@@ -341,8 +343,6 @@ Problemy związane z rozmiarem projektu nie zostały wyeliminowane ze względu n
 \end{itemize}
 
 \section{Perspektywa dalszego rozwoju projektu}
-\begin{itemize}
-\end{itemize}
 
 \subsection{PJM-to-text}
 Dalszy rozwój projektu może przebiegać w kilku uzupełniających się kierunkach. 
@@ -405,7 +405,7 @@ KAWA & 42 & 54 & 77,8\% & PRACA (10/54) \\
 KLUCZ & 14 & 18 & 77,8\% & TY (2/18) \\
 KOT & 35 & 44 & 79,5\% & DOBRY (2/44) \\
 SPAĆ & 43 & 54 & 79,6\% & RANO (9/54) \\
-HERBATA & 46 & 56 & 82,1\% & PONIEDZIAłEK (2/56) \\
+HERBATA & 46 & 56 & 82,1\% & PONIEDZIAŁEK (2/56) \\
 KTO & 29 & 35 & 82,9\% & KIEDY (2/35) \\
 CZAS & 30 & 36 & 83,3\% & DUŻY (3/36) \\
 WTOREK & 15 & 18 & 83,3\% & BARDZO (1/18) \\
